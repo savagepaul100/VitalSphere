@@ -499,7 +499,7 @@ public class VitalSphereDesktopClient extends JFrame {
         JPanel actBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         actBar.setBackground(Color.WHITE);
 
-        JButton previewBtn = createStyledButton("📄 Preview Certificate", COLOR_NAVY_900, Color.WHITE);
+        JButton previewBtn = createStyledButton("Preview Certificate", COLOR_NAVY_900, Color.WHITE);
         previewBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row != -1) {
@@ -727,7 +727,7 @@ public class VitalSphereDesktopClient extends JFrame {
         certLabel.setFont(new Font("Segoe UI", Font.ITALIC, 11));
         certLabel.setForeground(COLOR_SLATE_500);
 
-        JButton chooseCertBtn = createStyledButton("📎 Browse PDF Certificate", COLOR_SLATE_200, COLOR_NAVY_900);
+        JButton chooseCertBtn = createStyledButton("Browse PDF Certificate", COLOR_SLATE_200, COLOR_NAVY_900);
         chooseCertBtn.addActionListener(e -> {
             JFileChooser fc = new JFileChooser();
             fc.setFileFilter(new FileNameExtensionFilter("PDF Documents & Images (*.pdf, *.png, *.jpg)", "pdf", "png", "jpg", "jpeg"));
@@ -749,7 +749,7 @@ public class VitalSphereDesktopClient extends JFrame {
         proofLabel.setFont(new Font("Segoe UI", Font.ITALIC, 11));
         proofLabel.setForeground(COLOR_SLATE_500);
 
-        JButton chooseProofBtn = createStyledButton("📎 Browse Proof PDF", COLOR_SLATE_200, COLOR_NAVY_900);
+        JButton chooseProofBtn = createStyledButton("Browse Proof PDF", COLOR_SLATE_200, COLOR_NAVY_900);
         chooseProofBtn.addActionListener(e -> {
             JFileChooser fc = new JFileChooser();
             fc.setFileFilter(new FileNameExtensionFilter("PDF Documents & Images (*.pdf, *.png, *.jpg)", "pdf", "png", "jpg", "jpeg"));

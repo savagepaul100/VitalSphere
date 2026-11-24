@@ -539,17 +539,23 @@
     /* Fixed Bottom Tab Bar */
     .bottom-tab-bar {
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 64px;
-      background: var(--navy-950);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 28px);
+      max-width: 440px;
+      height: 58px;
+      background: rgba(10, 17, 32, 0.96);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 9999px;
       display: flex;
       justify-content: space-around;
       align-items: center;
-      z-index: 1000;
-      padding-bottom: env(safe-area-inset-bottom, 0px);
+      z-index: 1200;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45), 0 2px 10px rgba(0, 0, 0, 0.25);
+      padding: 0 10px;
     }
 
     .tab-item {
@@ -559,19 +565,120 @@
       justify-content: center;
       color: var(--slate-400);
       text-decoration: none;
-      font-size: 0.65rem;
+      font-size: 0.62rem;
       font-weight: 700;
-      gap: 3px;
+      gap: 2px;
       flex: 1;
       height: 100%;
+      transition: color 0.15s ease;
+      cursor: pointer;
     }
 
     .tab-item.active {
-      color: var(--red-600);
+      color: #38bdf8;
     }
 
     .tab-icon {
-      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+    }
+
+    /* Fullscreen Mobile Directory Modal */
+    .m-fs-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #f8fafc;
+      z-index: 2500;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .m-fs-head {
+      background: var(--navy-950);
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: white;
+    }
+
+    .m-group-pills-bar {
+      display: flex;
+      gap: 8px;
+      padding: 10px 16px;
+      background: white;
+      border-bottom: 1px solid var(--slate-200);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .m-group-pills-bar::-webkit-scrollbar { display: none; }
+
+    .m-grp-pill {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      border: 1px solid var(--slate-200);
+      background: var(--slate-50);
+      color: var(--navy-900);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .m-grp-pill.active {
+      background: #dc2626;
+      border-color: #dc2626;
+      color: white;
+    }
+
+    .m-fs-tab-bar {
+      display: flex;
+      background: white;
+      border-bottom: 1px solid var(--slate-200);
+    }
+    .m-fs-tab-btn {
+      flex: 1;
+      padding: 12px 10px;
+      border: none;
+      background: none;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--slate-500);
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      text-align: center;
+    }
+    .m-fs-tab-btn.active {
+      color: #dc2626;
+      border-bottom-color: #dc2626;
+    }
+
+    .m-clean-card {
+      background: white;
+      border: 1px solid var(--slate-200);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: all 0.15s ease;
+    }
+    .m-clean-card:active {
+      background: var(--slate-50);
+      transform: scale(0.99);
     }
 
     /* Modals / Sheets */
@@ -703,8 +810,8 @@
       </div>
     </div>
     <div class="header-actions">
-      <a href="/?view=desktop" class="btn-header" title="Switch to Full Desktop Version">🖥️ Desktop</a>
-      <button class="btn-header primary" onclick="openMobileLogin()">🔑 Sign In</button>
+      <a href="/?view=desktop" class="btn-header" title="Switch to Full Desktop Version">Desktop [PC]</a>
+      <button class="btn-header primary" onclick="openMobileLogin()">Sign In</button>
     </div>
   </header>
 
@@ -712,7 +819,7 @@
   <div class="authority-pill-bar" id="mAuthorityBar">
     <span id="mAuthorityText">Signed in: Chief Medical Officer</span>
     <button onclick="openMobileReviewModal()" style="background:#059669; border:none; color:white; padding:4px 8px; border-radius:4px; font-size:0.7rem; font-weight:800;">
-      🩺 Review Desk (<span id="mPendingCount">5</span>)
+      Review Desk (<span id="mPendingCount">5</span>)
     </button>
   </div>
 
@@ -753,42 +860,42 @@
       </div>
 
       <div class="stock-grid">
-        <div class="stock-card" onclick="filterDirectoryByGroup('O-')">
+        <div class="stock-card" onclick="openMobileFsDirectory('O-')">
           <span class="stock-badge">O-</span>
           <div class="stock-units">108 Units</div>
           <div class="stock-center">Universal Donor</div>
         </div>
-        <div class="stock-card" onclick="filterDirectoryByGroup('O+')">
+        <div class="stock-card" onclick="openMobileFsDirectory('O+')">
           <span class="stock-badge">O+</span>
           <div class="stock-units">215 Units</div>
           <div class="stock-center">High Availability</div>
         </div>
-        <div class="stock-card" onclick="filterDirectoryByGroup('A-')">
+        <div class="stock-card" onclick="openMobileFsDirectory('A-')">
           <span class="stock-badge">A-</span>
           <div class="stock-units">84 Units</div>
           <div class="stock-center">Rh-Negative Stock</div>
         </div>
-        <div class="stock-card" onclick="filterDirectoryByGroup('A+')">
+        <div class="stock-card" onclick="openMobileFsDirectory('A+')">
           <span class="stock-badge">A+</span>
           <div class="stock-units">176 Units</div>
           <div class="stock-center">Active Reserves</div>
         </div>
-        <div class="stock-card" onclick="filterDirectoryByGroup('B-')">
+        <div class="stock-card" onclick="openMobileFsDirectory('B-')">
           <span class="stock-badge">B-</span>
           <div class="stock-units">92 Units</div>
           <div class="stock-center">Emergency Reserve</div>
         </div>
-        <div class="stock-card" onclick="filterDirectoryByGroup('B+')">
+        <div class="stock-card" onclick="openMobileFsDirectory('B+')">
           <span class="stock-badge">B+</span>
           <div class="stock-units">230 Units</div>
           <div class="stock-center">High Availability</div>
         </div>
-        <div class="stock-card" onclick="filterDirectoryByGroup('AB-')">
+        <div class="stock-card" onclick="openMobileFsDirectory('AB-')">
           <span class="stock-badge">AB-</span>
           <div class="stock-units">48 Units</div>
           <div class="stock-center">Priority Group</div>
         </div>
-        <div class="stock-card" onclick="filterDirectoryByGroup('AB+')">
+        <div class="stock-card" onclick="openMobileFsDirectory('AB+')">
           <span class="stock-badge">AB+</span>
           <div class="stock-units">140 Units</div>
           <div class="stock-center">Universal Recipient</div>
@@ -981,28 +1088,106 @@
 
   </main>
 
-  <!-- Bottom Mobile Tab Bar -->
+    <!-- FULLSCREEN MOBILE DIRECTORY MODAL (POPUP ON BLOOD GROUP CLICK) -->
+  <div class="m-fs-modal" id="mFullscreenDirectoryModal">
+    <!-- Top Bar -->
+    <div class="m-fs-head">
+      <div>
+        <h2 style="font-size:1.15rem; font-weight:800; color:white; margin:0;" id="mFsModalTitle">Blood Directory</h2>
+        <span style="font-size:0.72rem; color:#94a3b8;" id="mFsModalSubtitle">Verified Voluntary Donors & Active Patients</span>
+      </div>
+      <button onclick="closeMobileFsDirectory()" style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:white; border-radius:8px; padding:6px 14px; font-weight:800; font-size:0.82rem; cursor:pointer;">
+        ✕ Close
+      </button>
+    </div>
+
+    <!-- Group Filter Pills (Horizontal Scroll) -->
+    <div class="m-group-pills-bar" id="mGroupPillsContainer">
+      <button class="m-grp-pill active" onclick="setMobileFsGroupFilter('ALL', this)">All Groups</button>
+      <button class="m-grp-pill" onclick="setMobileFsGroupFilter('O-', this)">O-</button>
+      <button class="m-grp-pill" onclick="setMobileFsGroupFilter('O+', this)">O+</button>
+      <button class="m-grp-pill" onclick="setMobileFsGroupFilter('A-', this)">A-</button>
+      <button class="m-grp-pill" onclick="setMobileFsGroupFilter('A+', this)">A+</button>
+      <button class="m-grp-pill" onclick="setMobileFsGroupFilter('B-', this)">B-</button>
+      <button class="m-grp-pill" onclick="setMobileFsGroupFilter('B+', this)">B+</button>
+      <button class="m-grp-pill" onclick="setMobileFsGroupFilter('AB-', this)">AB-</button>
+      <button class="m-grp-pill" onclick="setMobileFsGroupFilter('AB+', this)">AB+</button>
+    </div>
+
+    <!-- Tab Switcher: Donors vs Recipients -->
+    <div class="m-fs-tab-bar">
+      <button class="m-fs-tab-btn active" id="mFsTabDonors" onclick="switchMobileFsTab('donors')">
+        Donors (<span id="mFsDonorsCount">256</span>)
+      </button>
+      <button class="m-fs-tab-btn" id="mFsTabRecipients" onclick="switchMobileFsTab('recipients')">
+        Recipients Who Want Blood (<span id="mFsRecipientsCount">64</span>)
+      </button>
+    </div>
+
+    <!-- Search Input -->
+    <div style="padding:10px 16px; background:white; border-bottom:1px solid var(--slate-200);">
+      <input type="text" id="mFsFilterInput" placeholder="Search by name, reg no, state or city..." style="width:100%; padding:9px 12px; border:1px solid var(--slate-200); border-radius:8px; font-size:0.82rem; box-sizing:border-box;" oninput="applyMobileFsFilter()" />
+    </div>
+
+    <!-- Clean List (Only Reg No, Name, Blood Group, Location/Urgency) -->
+    <div style="flex:1; overflow-y:auto; padding:14px 16px 80px;" id="mFsDirectoryListContainer">
+      <!-- Dynamically populated -->
+    </div>
+  </div>
+
+  <!-- Mobile Detailed Info Drilldown Bottom Sheet / Modal -->
+  <div class="sheet-overlay" id="mFsDetailModal" style="display:none; align-items:flex-end;">
+    <div class="sheet-card" style="max-height:85vh; border-radius:16px 16px 0 0; padding:20px; overflow-y:auto;">
+      <div class="sheet-head" style="margin-bottom:14px;">
+        <div>
+          <span style="font-size:0.68rem; font-weight:800; color:#dc2626; text-transform:uppercase;" id="mFsDetailCategory">Dossier File</span>
+          <h3 style="font-size:1.15rem; font-weight:800; color:var(--navy-900); margin-top:2px;" id="mFsDetailTitle">Dossier Details</h3>
+        </div>
+        <button class="sheet-close" onclick="closeMobileFsDetail()">&times;</button>
+      </div>
+
+      <div id="mFsDetailBody" style="font-size:0.85rem;">
+        <!-- Dynamically rendered -->
+      </div>
+
+      <div style="margin-top:16px; display:flex; gap:10px;" id="mFsDetailFooter">
+        <!-- Dynamically rendered -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Mobile Pill Tab Bar (Crisp Vector Icons, No Emojis) -->
   <nav class="bottom-tab-bar">
     <a href="#home" class="tab-item active" onclick="setActiveTab(this)">
-      <span class="tab-icon">🏠</span>
+      <span class="tab-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </span>
       <span>Home</span>
     </a>
     <a href="#inventory" class="tab-item" onclick="setActiveTab(this)">
-      <span class="tab-icon">🩸</span>
+      <span class="tab-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+      </span>
       <span>Stock</span>
     </a>
     <a href="#register" class="tab-item" onclick="setActiveTab(this)">
-      <span class="tab-icon">✍️</span>
+      <span class="tab-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </span>
       <span>Register</span>
     </a>
     <a href="#request" class="tab-item" onclick="setActiveTab(this)">
-      <span class="tab-icon">🚨</span>
+      <span class="tab-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </span>
       <span>Emergency</span>
     </a>
-    <a href="#directory" class="tab-item" onclick="setActiveTab(this)">
-      <span class="tab-icon">👥</span>
+    <div class="tab-item" onclick="openMobileFsDirectory(null)">
+      <span class="tab-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </span>
       <span>Directory</span>
-    </a>
+    </div>
   </nav>
 
   <!-- CAMPFLOW STYLE SAVED PASSWORDS KEYCHAIN BOTTOM SHEET -->
@@ -1010,7 +1195,7 @@
     <div class="sheet-card">
       <div class="sheet-head">
         <div style="display:flex; align-items:center; gap:8px;">
-          <span style="font-size:1.1rem;">🔑</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-1.5 1.5L14 9l-1.5-1.5L11 9l-1.5-1.5L8 9 2 15v5h5l6-6 1.5 1.5L16 14l1.5-1.5 3.5 3.5 2-2z"/></svg>
           <div>
             <div style="font-size:0.95rem; font-weight:800;">Saved Accounts Keychain</div>
             <div style="font-size:0.68rem; color:#38bdf8;">Tap any account to instantly autofill & log in</div>
@@ -1299,11 +1484,11 @@
               <span class="d-bg-badge">${d.bloodGroup}</span>
             </div>
             <div class="d-mid-row">
-              <span class="d-loc-pill">📍 ${d.city}, ${d.state}</span>
+              <span class="d-loc-pill">Location: ${d.city}, ${d.state}</span>
               <span class="d-fit-pill ${d.fitClass}" onclick="openExplainerModal()">${d.healthStatus} ℹ️</span>
             </div>
             <a href="tel:${d.mobile}" class="btn-call">
-              <span>📞</span> Call Donor (${d.mobile})
+              Call Donor (${d.mobile})
             </a>
           </div>
         `).join('');
@@ -1331,16 +1516,16 @@
               <span class="d-bg-badge">${r.bloodGroup}</span>
             </div>
             <div class="d-mid-row">
-              <span class="d-loc-pill">🏥 ${r.hospital}</span>
-              <span class="d-loc-pill">🩸 ${r.units}</span>
+              <span class="d-loc-pill">Hospital: ${r.hospital}</span>
+              <span class="d-loc-pill">Units: ${r.units}</span>
               <span class="d-fit-pill ${r.urgency === 'CRITICAL' ? 'borderline' : 'fit'}">${r.urgency}</span>
             </div>
             <div style="display:flex; gap:8px; margin-top:10px;">
               <button onclick="handleMobileDonate('${r.id}')" style="flex:1.2; height:42px; background:#dc2626; color:white; border:none; border-radius:8px; font-weight:800; font-size:0.88rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
-                <span>🩸</span> Donate
+                Donate
               </button>
               <a href="tel:${r.contact}" class="btn-call" style="flex:1; margin-top:0; background:var(--navy-900); text-decoration:none;">
-                <span>📞</span> Attendant
+                Call Attendant
               </a>
             </div>
           </div>
@@ -1535,7 +1720,7 @@
         if (p.cert.toLowerCase().endsWith('.pdf')) {
           previewDocHtml = `
             <div style="margin-top:12px; background:#0f172a; border:1px solid #334155; border-radius:8px; padding:12px; text-align:center;">
-              <div style="font-size:0.75rem; color:#93c5fd; margin-bottom:8px;">📄 Uploaded Document: <strong>${p.cert}</strong></div>
+              <div style="font-size:0.75rem; color:#93c5fd; margin-bottom:8px;">Uploaded Document: <strong>${p.cert}</strong></div>
               <iframe src="${p.certUrl}" style="width:100%; height:200px; border:none; border-radius:6px; background:white;"></iframe>
               <div style="margin-top:8px;">
                 <a href="${p.certUrl}" target="_blank" style="color:#38bdf8; font-size:0.75rem; font-weight:700; text-decoration:underline;">Open PDF Fullscreen ↗</a>
@@ -1562,7 +1747,7 @@
           <div style="font-size:0.68rem; font-weight:800; color:#f87171; text-transform:uppercase; margin-bottom:2px;">Candidate Profile</div>
           <div style="font-size:1.05rem; font-weight:800; color:white;">${p.name}</div>
           <div style="font-size:0.75rem; color:#94a3b8; font-family:var(--font-mono); margin-top:2px;">
-            Aadhaar: ${p.aadhaar} • Blood Group: <strong style="color:#f87171;">${p.group}</strong> • 📍 ${p.city}, ${p.st}
+            Aadhaar: ${p.aadhaar} • Blood Group: <strong style="color:#f87171;">${p.group}</strong> • Location: ${p.city}, ${p.st}
           </div>
         </div>
 
@@ -1626,14 +1811,14 @@
             <span class="d-bg-badge">${p.group}</span>
           </div>
           <div style="font-size:0.7rem; color:var(--slate-400); font-family:var(--font-mono); margin-bottom:6px;">
-            Aadhaar: ${p.aadhaar} • 📍 ${p.city}, ${p.st}
+            Aadhaar: ${p.aadhaar} • Location: ${p.city}, ${p.st}
           </div>
           <div style="font-size:0.72rem; color:#93c5fd; margin-bottom:8px;">
-            📄 ${p.cert} • 🩸 ${p.proof}
+            Document: ${p.cert} • Units: ${p.proof}
           </div>
           <div style="display:flex; gap:6px; flex-wrap:wrap;">
             <button onclick="openMobileCertPreview(${idx})" style="flex:1; min-width:130px; height:36px; background:#1e293b; color:#93c5fd; border:1px solid #3b82f6; border-radius:6px; font-size:0.75rem; font-weight:700; cursor:pointer;">
-              📄 Preview Cert 👁️
+              Document: Preview Cert 
             </button>
             <button onclick="approveMobileDonor(${idx})" style="flex:1; min-width:90px; height:36px; background:#059669; color:white; border:none; border-radius:6px; font-size:0.75rem; font-weight:800; cursor:pointer;">
               ✓ Approve
@@ -1677,6 +1862,270 @@
       updatePendingBadge();
       renderPendingList();
       alert(`Donor ${deferred.name} has been placed on 90-day clinical deferral.`);
+    };
+
+    // Fullscreen Mobile Directory Modal Logic (Blood Group Tap / Directory Pill Tap)
+    window.mFsCurrentGroup = 'ALL';
+    window.mFsCurrentTab = 'donors';
+
+    window.openMobileFsDirectory = function(group = null) {
+      window.mFsCurrentGroup = group || 'ALL';
+      const modal = document.getElementById('mFullscreenDirectoryModal');
+      if (modal) modal.style.display = 'flex';
+
+      const title = document.getElementById('mFsModalTitle');
+      const subtitle = document.getElementById('mFsModalSubtitle');
+      if (title) {
+        title.innerText = (group && group !== 'ALL') ? `Directory — Group ${group}` : 'Pan-India Directory';
+      }
+      if (subtitle) {
+        subtitle.innerText = (group && group !== 'ALL') ? `Verified voluntary donors and patients for ${group}` : 'Verified Voluntary Donors & Active Patients';
+      }
+
+      // Update pills
+      document.querySelectorAll('.m-grp-pill').forEach(btn => {
+        const text = btn.innerText.trim();
+        if ((group === null || group === 'ALL') && text === 'All Groups') {
+          btn.classList.add('active');
+        } else if (text === group) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      applyMobileFsFilter();
+    };
+
+    window.closeMobileFsDirectory = function() {
+      const modal = document.getElementById('mFullscreenDirectoryModal');
+      if (modal) modal.style.display = 'none';
+      closeMobileFsDetail();
+    };
+
+    window.setMobileFsGroupFilter = function(grp, btnEl) {
+      window.mFsCurrentGroup = grp;
+      document.querySelectorAll('.m-grp-pill').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+      const title = document.getElementById('mFsModalTitle');
+      if (title) {
+        title.innerText = (grp && grp !== 'ALL') ? `Directory — Group ${grp}` : 'Pan-India Directory';
+      }
+      applyMobileFsFilter();
+    };
+
+    window.switchMobileFsTab = function(tab) {
+      window.mFsCurrentTab = tab;
+      const btnD = document.getElementById('mFsTabDonors');
+      const btnR = document.getElementById('mFsTabRecipients');
+      if (btnD) btnD.classList.toggle('active', tab === 'donors');
+      if (btnR) btnR.classList.toggle('active', tab === 'recipients');
+      applyMobileFsFilter();
+    };
+
+    window.applyMobileFsFilter = function() {
+      const q = (document.getElementById('mFsFilterInput') ? document.getElementById('mFsFilterInput').value : '').toLowerCase().trim();
+      const container = document.getElementById('mFsDirectoryListContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (window.mFsCurrentTab === 'donors') {
+        let list = window.fullDonorsList || [];
+        if (window.mFsCurrentGroup && window.mFsCurrentGroup !== 'ALL') {
+          list = list.filter(d => d.bloodGroup === window.mFsCurrentGroup);
+        }
+        if (q) {
+          list = list.filter(d => 
+            (d.name && d.name.toLowerCase().includes(q)) ||
+            (d.district && d.district.toLowerCase().includes(q)) ||
+            (d.id && d.id.toLowerCase().includes(q)) ||
+            (d.bloodGroup && d.bloodGroup.toLowerCase().includes(q))
+          );
+        }
+
+        const countEl = document.getElementById('mFsDonorsCount');
+        if (countEl) countEl.innerText = list.length;
+
+        if (list.length === 0) {
+          container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--slate-400); font-size:0.85rem;">No donors found for this selection.</div>';
+          return;
+        }
+
+        list.forEach(d => {
+          const card = document.createElement('div');
+          card.className = 'm-clean-card';
+          card.onclick = () => openMobileFsDonorDetail(d.id);
+          card.innerHTML = `
+            <div style="display:flex; align-items:center; gap:12px; flex:1;">
+              <span class="d-bg-badge" style="font-size:1.1rem; padding:4px 10px; min-width:44px; text-align:center;">${d.bloodGroup}</span>
+              <div>
+                <div style="font-size:0.95rem; font-weight:800; color:var(--navy-900); margin-bottom:2px;">${d.name}</div>
+                <div style="font-size:0.75rem; color:var(--slate-500); display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                  <span style="font-family:var(--font-mono); font-weight:700; background:var(--slate-100); padding:2px 6px; border-radius:4px;">${d.id}</span>
+                  <span>${d.district}</span>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button style="background:var(--slate-100); border:1px solid var(--slate-200); color:var(--navy-900); border-radius:6px; font-size:0.75rem; font-weight:700; padding:6px 10px; cursor:pointer;">
+                Info →
+              </button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+
+      } else {
+        let list = window.fullRecipientsList || [];
+        if (window.mFsCurrentGroup && window.mFsCurrentGroup !== 'ALL') {
+          list = list.filter(r => r.bloodGroup === window.mFsCurrentGroup);
+        }
+        if (q) {
+          list = list.filter(r => 
+            (r.patientName && r.patientName.toLowerCase().includes(q)) ||
+            (r.district && r.district.toLowerCase().includes(q)) ||
+            (r.hospital && r.hospital.toLowerCase().includes(q)) ||
+            (r.id && r.id.toLowerCase().includes(q)) ||
+            (r.bloodGroup && r.bloodGroup.toLowerCase().includes(q))
+          );
+        }
+
+        const countEl = document.getElementById('mFsRecipientsCount');
+        if (countEl) countEl.innerText = list.length;
+
+        if (list.length === 0) {
+          container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--slate-400); font-size:0.85rem;">No recipients found for this selection.</div>';
+          return;
+        }
+
+        list.forEach(r => {
+          const card = document.createElement('div');
+          card.className = 'm-clean-card';
+          card.onclick = () => openMobileFsRecipientDetail(r.id);
+          const isCommitted = r.status && r.status.includes('DONOR FOUND');
+          card.innerHTML = `
+            <div style="display:flex; align-items:center; gap:12px; flex:1;">
+              <span class="d-bg-badge" style="font-size:1.1rem; padding:4px 10px; min-width:44px; text-align:center;">${r.bloodGroup}</span>
+              <div>
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
+                  <span style="font-size:0.95rem; font-weight:800; color:var(--navy-900);">${r.patientName}</span>
+                  <span class="d-fit-pill ${r.urgency === 'CRITICAL' ? 'borderline' : 'fit'}" style="font-size:0.65rem; padding:1px 6px;">${r.urgency}</span>
+                </div>
+                <div style="font-size:0.75rem; color:var(--slate-500); display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                  <span style="font-family:var(--font-mono); font-weight:700; background:var(--slate-100); padding:2px 6px; border-radius:4px;">${r.id}</span>
+                  <span>${r.hospital}</span>
+                  <span>(${r.units})</span>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button onclick="event.stopPropagation(); handleMobileDonate('${r.id}')" style="background:#dc2626; color:white; border:none; border-radius:6px; font-size:0.75rem; font-weight:800; padding:6px 12px; cursor:pointer;">
+                Donate
+              </button>
+              <button style="background:var(--slate-100); border:1px solid var(--slate-200); color:var(--navy-900); border-radius:6px; font-size:0.75rem; font-weight:700; padding:6px 10px; cursor:pointer;">
+                Info →
+              </button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      }
+    };
+
+    window.openMobileFsDonorDetail = function(donorId) {
+      const d = (window.fullDonorsList || []).find(x => x.id === donorId);
+      if (!d) return;
+
+      document.getElementById('mFsDetailCategory').innerText = 'Verified Voluntary Donor Profile';
+      document.getElementById('mFsDetailTitle').innerText = `${d.name} (${d.bloodGroup})`;
+
+      const body = document.getElementById('mFsDetailBody');
+      body.innerHTML = `
+        <div style="background:#f8fafc; border:1px solid var(--slate-200); border-radius:10px; padding:14px; margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-family:var(--font-mono); font-size:0.8rem; font-weight:800; color:var(--navy-900);">${d.id} • Aadhaar: ${d.aadhaar}</span>
+            <span class="d-bg-badge">${d.bloodGroup}</span>
+          </div>
+          <div style="font-size:0.8rem; color:var(--slate-600); line-height:1.6;">
+            <strong>Full Legal Name:</strong> ${d.name}<br/>
+            <strong>Residential Area:</strong> ${d.district}<br/>
+            <strong>Clinical Status:</strong> <span style="color:var(--emerald-600); font-weight:700;">${d.healthStatus}</span><br/>
+            <strong>Official Proofs:</strong> ${d.medicalProof || 'Registered Physician Certificate'} & ${d.groupProof || 'Clinical Pathology Report'}
+          </div>
+        </div>
+        <div style="background:#ecfdf5; border-left:3px solid #059669; padding:8px 12px; font-size:0.75rem; color:#065f46; border-radius:0 6px 6px 0;">
+          ✓ Statutory NBTC Clinical Standards Verified: Hb ≥ 12.5 g/dL, optimal rest period, non-reactive serology.
+        </div>
+      `;
+
+      const footer = document.getElementById('mFsDetailFooter');
+      footer.innerHTML = `
+        <button onclick="closeMobileFsDetail()" style="flex:1; height:42px; background:var(--slate-100); border:1px solid var(--slate-300); color:var(--navy-900); border-radius:8px; font-weight:700; font-size:0.82rem; cursor:pointer;">
+          Close
+        </button>
+        <a href="tel:${d.mobile}" style="flex:1.5; height:42px; background:#059669; color:white; border-radius:8px; font-weight:800; font-size:0.85rem; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:6px;">
+          Request / Call (${d.mobile})
+        </a>
+      `;
+
+      document.getElementById('mFsDetailModal').style.display = 'flex';
+    };
+
+    window.openMobileFsRecipientDetail = function(reqId) {
+      const r = (window.fullRecipientsList || []).find(x => x.id === reqId);
+      if (!r) return;
+
+      document.getElementById('mFsDetailCategory').innerText = 'Emergency Transfusion Dossier';
+      document.getElementById('mFsDetailTitle').innerText = `${r.patientName} (${r.bloodGroup})`;
+
+      const isCommitted = r.status && r.status.includes('DONOR FOUND');
+
+      const body = document.getElementById('mFsDetailBody');
+      body.innerHTML = `
+        <div style="background:#f8fafc; border:1px solid var(--slate-200); border-radius:10px; padding:14px; margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-family:var(--font-mono); font-size:0.8rem; font-weight:800; color:var(--navy-900);">${r.id} • Aadhaar: ${r.aadhaar}</span>
+            <span class="d-bg-badge">${r.bloodGroup}</span>
+          </div>
+          <div style="font-size:0.8rem; color:var(--slate-600); line-height:1.6;">
+            <strong>Patient Name:</strong> ${r.patientName}<br/>
+            <strong>Hospital:</strong> ${r.hospital} (${r.district})<br/>
+            <strong>Units Required:</strong> <strong style="color:#dc2626;">${r.units}</strong><br/>
+            <strong>Clinical Urgency:</strong> <span class="d-fit-pill ${r.urgency === 'CRITICAL' ? 'borderline' : 'fit'}">${r.urgency}</span><br/>
+            <strong>Attendant Contact:</strong> ${r.contact}<br/>
+            <strong>Status:</strong> <span style="font-weight:700; color:${isCommitted ? '#059669' : '#d97706'};">${r.status || 'LOOKING_FOR_DONORS'}</span>
+          </div>
+        </div>
+        ${isCommitted ? `
+          <div style="background:#ecfdf5; border-left:3px solid #059669; padding:8px 12px; font-size:0.75rem; color:#065f46; border-radius:0 6px 6px 0;">
+            ✓ Confirmed Donor Assigned! Coordination in progress.
+          </div>
+        ` : `
+          <div style="background:#fff1f2; border-left:3px solid #dc2626; padding:8px 12px; font-size:0.75rem; color:#9f1239; border-radius:0 6px 6px 0;">
+            Active Emergency: Click <strong>"Donate Now"</strong> to immediately alert patient attendant and hospital.
+          </div>
+        `}
+      `;
+
+      const footer = document.getElementById('mFsDetailFooter');
+      footer.innerHTML = `
+        <button onclick="closeMobileFsDetail()" style="flex:1; height:42px; background:var(--slate-100); border:1px solid var(--slate-300); color:var(--navy-900); border-radius:8px; font-weight:700; font-size:0.82rem; cursor:pointer;">
+          Close
+        </button>
+        <a href="tel:${r.contact}" style="flex:1; height:42px; background:var(--navy-900); color:white; border-radius:8px; font-weight:700; font-size:0.8rem; text-decoration:none; display:flex; align-items:center; justify-content:center;">
+          Call Attendant
+        </a>
+        <button onclick="handleMobileDonate('${r.id}')" style="flex:1.2; height:42px; background:#dc2626; color:white; border:none; border-radius:8px; font-weight:800; font-size:0.85rem; cursor:pointer;">
+          Donate Now
+        </button>
+      `;
+
+      document.getElementById('mFsDetailModal').style.display = 'flex';
+    };
+
+    window.closeMobileFsDetail = function() {
+      const modal = document.getElementById('mFsDetailModal');
+      if (modal) modal.style.display = 'none';
     };
 
     // Explainer Modal
