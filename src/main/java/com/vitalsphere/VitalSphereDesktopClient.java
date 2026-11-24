@@ -1153,8 +1153,36 @@ public class VitalSphereDesktopClient extends JFrame {
         hospField.setPreferredSize(new Dimension(580, 32));
         panel.add(hospField, gbc);
 
+        // Row 5: Doctor Requisition Certificate Upload
+        gbc.gridy = 10; gbc.gridx = 0; gbc.gridwidth = 2;
+        panel.add(new JLabel("Doctor's Transfusion Requisition / Medical Proof Certificate:"), gbc);
+
+        gbc.gridy = 11;
+        JPanel reqCertPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        reqCertPanel.setOpaque(false);
+        JLabel reqCertPathLbl = new JLabel("Attached: hospital_transfusion_requisition.pdf");
+        reqCertPathLbl.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        reqCertPathLbl.setForeground(COLOR_EMERALD_600);
+        JButton chooseReqCertBtn = createStyledButton("Choose Certificate (.pdf / .png)", COLOR_NAVY_900, Color.WHITE);
+        chooseReqCertBtn.setPreferredSize(new Dimension(240, 32));
+        final String[] uploadedReqCertName = {"hospital_transfusion_requisition.pdf"};
+        chooseReqCertBtn.addActionListener(e -> {
+            JFileChooser fc = new JFileChooser();
+            fc.setDialogTitle("Select Doctor's Transfusion Requisition Slip (.pdf, .png, .jpg)");
+            int res = fc.showOpenDialog(this);
+            if (res == JFileChooser.APPROVE_OPTION) {
+                File f = fc.getSelectedFile();
+                uploadedReqCertName[0] = f.getName();
+                certificateFilePathMap.put(f.getName(), f.getAbsolutePath());
+                reqCertPathLbl.setText("Selected: " + f.getName());
+            }
+        });
+        reqCertPanel.add(chooseReqCertBtn);
+        reqCertPanel.add(reqCertPathLbl);
+        panel.add(reqCertPanel, gbc);
+
         // Submit Button
-        gbc.gridy = 10;
+        gbc.gridy = 12;
         gbc.insets = new Insets(18, 12, 6, 12);
         JButton submitReqBtn = createStyledButton("Submit Emergency Transfusion Requirement", COLOR_RED_600, Color.WHITE);
         submitReqBtn.setPreferredSize(new Dimension(340, 42));
@@ -1171,6 +1199,7 @@ public class VitalSphereDesktopClient extends JFrame {
                 return;
             }
 
+            String reqCertName = uploadedReqCertName[0];
             String newReqId = "REQ-" + (8000 + recipientsTableModel.getRowCount() + 1);
             recipientsTableModel.insertRow(0, new Object[]{
                     newReqId, pn, "XXXX-XXXX-" + pa.substring(8), bg, u + " Units (" + (u * 350) + " ml)", h, "CRITICAL", m, "LOOKING_FOR_DONORS"

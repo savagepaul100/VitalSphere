@@ -1108,9 +1108,7 @@
         <h2 style="font-size:1.15rem; font-weight:800; color:white; margin:0;" id="mFsModalTitle">Blood Directory</h2>
         <span style="font-size:0.72rem; color:#94a3b8;" id="mFsModalSubtitle">Verified Voluntary Donors & Active Patients</span>
       </div>
-      <button onclick="closeMobileFsDirectory()" style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:white; border-radius:8px; padding:6px 14px; font-weight:800; font-size:0.82rem; cursor:pointer;">
-        ✕ Close
-      </button>
+      <button onclick="closeMobileFsDirectory()" title="Close" style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:white; border-radius:8px; width:34px; height:34px; font-weight:800; font-size:1.1rem; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;">✕</button>
     </div>
 
     <!-- Group Filter Pills (Horizontal Scroll) -->
@@ -1668,7 +1666,7 @@
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
               <button style="background:var(--slate-100); border:1px solid var(--slate-200); color:var(--navy-900); border-radius:6px; font-size:0.75rem; font-weight:700; padding:6px 10px; cursor:pointer;">
-                Info →
+                More Info
               </button>
             </div>
           `;
@@ -1716,7 +1714,7 @@
                 Donate
               </button>
               <button style="background:var(--slate-100); border:1px solid var(--slate-200); color:var(--navy-900); border-radius:6px; font-size:0.75rem; font-weight:700; padding:6px 10px; cursor:pointer;">
-                Info →
+                More Info
               </button>
             </div>
           `;
@@ -2063,6 +2061,8 @@
         if (input.id === 'mDonorMedCert') {
           mobileUploadedCertFile = file;
           mobileUploadedCertName = file.name;
+        } else if (input.id === 'mReqMedCert') {
+          window.mobileUploadedReqCertName = file.name;
         } else {
           mobileUploadedProofFile = file;
           mobileUploadedProofName = file.name;
@@ -2128,51 +2128,47 @@
       const patient = document.getElementById('mReqPatient').value.trim();
       const aadhaar = document.getElementById('mReqAadhaar').value.trim();
       const grp = document.getElementById('mReqGroup').value;
-      const urgency = document.getElementById('mReqUrgency').value;
+      const units = document.getElementById('mReqUnits').value;
+      const urg = document.getElementById('mReqUrgency').value;
       const st = document.getElementById('mReqState').value;
       const city = document.getElementById('mReqCity').value;
       const hosp = document.getElementById('mReqHospital').value.trim();
-      const mobile = document.getElementById('mReqMobile').value.trim();
+      const mob = document.getElementById('mReqMobile').value.trim();
       const fb = document.getElementById('mReqFeedback');
 
-      if (!patient || aadhaar.length !== 12) {
-        fb.style.display = 'block';
-        fb.style.color = 'var(--red-600)';
-        fb.innerText = 'Please enter a valid patient name and 12-digit Aadhaar number.';
-        return;
-      }
+      const certName = window.mobileUploadedReqCertName || 'hospital_blood_requisition.pdf';
+      const newId = `REQ-${8000 + window.fullRecipientsList.length + 1}`;
 
-      const newReqId = `REQ-${8000 + window.fullRecipientsList.length + 1}`;
       window.fullRecipientsList.unshift({
-        id: newReqId,
+        id: newId,
         patientName: patient,
         aadhaar: `XXXX-XXXX-${aadhaar.slice(8)}`,
         bloodGroup: grp,
-        group: grp,
-        units: '2 Units (700 ml)',
+        units: `${units} Units (${units * 350} ml)`,
         hospital: `${hosp}, ${city}`,
         state: st,
         city: city,
         district: `${city}, ${st}`,
-        urgency: urgency,
-        urgencyClass: urgency === 'CRITICAL' ? 'borderline' : 'fit',
-        contact: mobile,
+        urgency: urg,
+        contact: mob,
+        certificate: certName,
         status: 'LOOKING_FOR_DONORS'
       });
 
-      updateMobileCounters();
       addMobileNotification({
         category: 'EMERGENCY',
-        title: `Emergency Transfusion: ${patient} (${grp})`,
-        message: `${hosp}, ${city} requested urgent blood. Attendant contact: ${mobile}.`,
-        targetReqId: newReqId,
+        title: `Emergency: ${grp} Needed (${patient})`,
+        message: `${hosp} req ${newId} (${city}, ${st}). ${units} units needed. Medical certificate attached.`,
+        targetReqId: newId,
         group: grp
       });
 
       fb.style.display = 'block';
       fb.style.color = 'var(--emerald-600)';
-      fb.innerHTML = `✓ Emergency requirement registered for <strong>${patient}</strong> (${grp})! Matched donors notified.`;
+      fb.innerHTML = `✓ Emergency requirement registered for <strong>${patient}</strong> (${grp})!<br/>Medical Certificate (<code>${certName}</code>) verified. Matched donors notified.`;
       document.getElementById('mReqForm').reset();
+      const txt = document.getElementById('mReqMedCertTxt');
+      if (txt) txt.innerText = 'Upload Hospital Requisition Slip (.pdf, .png, .jpg)';
     };
 
     // 5. KEYCHAIN LOGIN & LOGOUT

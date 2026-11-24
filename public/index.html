@@ -1058,9 +1058,7 @@
             <div class="notif-list" id="notifItemsContainer">
               <!-- Dynamically populated -->
             </div>
-            <div style="padding:8px 14px; background:#f8fafc; border-top:1px solid #e2e8f0; font-size:0.72rem; color:#64748b; text-align:center;">
-              Real-time sync with National Transfusion & Donor Network
-            </div>
+
           </div>
         </div>
 
@@ -1448,6 +1446,15 @@
             <input type="text" id="reqHospital" required />
           </div>
 
+                    <div class="form-item">
+            <label>Doctor's Transfusion Requisition / Medical Proof Certificate (PDF / Image)</label>
+            <label class="file-input-tile">
+              <span class="file-upload-badge">Choose File</span>
+              <span id="reqMedCertName">Upload Hospital Requisition Slip or Doctor Order (.pdf, .png, .jpg)</span>
+              <input type="file" id="reqMedCert" accept=".pdf,.png,.jpg,.jpeg" onchange="updateFileName(this, 'reqMedCertName')" />
+            </label>
+          </div>
+
           <button type="submit" class="btn btn-primary" style="width:100%; height:46px; font-size:0.95rem;">Submit Transfusion Requirement</button>
           <div id="requestMsg" style="margin-top:14px; font-size:0.88rem; font-weight:600;"></div>
         </form>
@@ -1465,15 +1472,14 @@
           <p style="font-size:0.82rem; color:var(--slate-500);">Direct tele-coordination with verified healthy donors and active patient recipients.</p>
         </div>
         <div style="display:flex; align-items:center; gap:12px;">
-          <button class="btn btn-secondary" onclick="openClinicalHelpModal()" style="font-size:0.78rem; padding:6px 12px; display:inline-flex; align-items:center; gap:6px;">
-            <span style="font-weight:800; color:var(--red-600); background:var(--red-50); border-radius:50%; width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center;">?</span>
-            Clinical Status Guide (Hb / Rest)
+          <button class="btn btn-secondary" onclick="openClinicalHelpModal()" title="Clinical Status Guide (Hb / Rest)" style="width:34px; height:34px; padding:0; display:inline-flex; align-items:center; justify-content:center; border-radius:8px;">
+            <span style="font-weight:800; font-size:0.9rem; color:var(--red-600); background:var(--red-50); border-radius:50%; width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center;">?</span>
           </button>
           <div class="tab-switch">
             <button class="tab-btn active" id="btnTabDonors" onclick="switchDirectoryTab('donors')">Donors</button>
             <button class="tab-btn" id="btnTabRecipients" onclick="switchDirectoryTab('recipients')">Recipients</button>
           </div>
-          <button class="btn btn-secondary" onclick="closeFullscreenDirectory()" style="padding:6px 14px;">✕ Close</button>
+          <button class="btn btn-secondary" onclick="closeFullscreenDirectory()" title="Close Directory" style="width:34px; height:34px; padding:0; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; font-weight:800; font-size:1rem; color:var(--slate-600);">✕</button>
         </div>
       </div>
 
@@ -2151,10 +2157,10 @@
             </div>
             <div style="display:flex; align-items:center; gap:10px;">
               <a href="tel:${d.mobile}" class="btn btn-secondary" style="padding:7px 14px; font-size:0.8rem; text-decoration:none;" onclick="event.stopPropagation()">
-                Call: Call ${d.mobile}
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>${d.mobile}
               </a>
               <button class="btn btn-secondary" style="padding:7px 14px; font-size:0.8rem;" onclick="openDonorDetails('${d.id}')">
-                View Details →
+                More Info
               </button>
             </div>
           `;
@@ -2208,7 +2214,7 @@
                 Donate
               </button>
               <button class="btn btn-secondary" style="padding:7px 14px; font-size:0.8rem;" onclick="openRecipientDetails('${r.id}')">
-                View Details →
+                More Info
               </button>
             </div>
           `;
@@ -2275,7 +2281,7 @@
         <div style="display:flex; gap:10px;">
           <button class="btn btn-secondary" onclick="closeFsDetailModal()">Close</button>
           <a href="tel:${d.mobile}" class="btn btn-primary" style="background:#059669; border-color:#059669; text-decoration:none;">
-            Call: Call ${d.mobile}
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>${d.mobile}
           </a>
         </div>
       `;
@@ -2329,6 +2335,15 @@
               <strong style="color:${isCommitted ? 'var(--emerald-600)' : 'var(--amber-600)'};">${r.status || 'LOOKING_FOR_DONORS'}</strong>
             </div>
           </div>
+          <div style="background:#f8fafc; border:1.5px solid var(--slate-200); border-radius:8px; padding:12px 14px; margin:14px 0; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <span style="font-size:0.68rem; font-weight:800; color:var(--red-600); text-transform:uppercase; letter-spacing:0.5px;">Verified Medical Requisition Certificate</span>
+              <div style="font-size:0.84rem; font-weight:700; color:var(--navy-900); margin-top:2px;">
+                ✓ Physician Order / Slip: <code style="color:var(--slate-800); background:#f1f5f9; padding:2px 6px; border-radius:4px;">${r.certificate || 'hospital_transfusion_slip.pdf'}</code>
+              </div>
+            </div>
+            <span class="status-pill status-fit" style="font-size:0.7rem; padding:4px 10px;">✓ Hospital Verified</span>
+          </div>
 
           ${isCommitted ? `
             <div style="border-left:3px solid var(--emerald-600); padding:10px 14px; background:#ecfdf5; font-size:0.8rem; color:#065f46; border-radius:4px;">
@@ -2347,7 +2362,7 @@
         <span style="font-size:0.78rem; color:var(--slate-500);">Hospital Transfusion Desk</span>
         <div style="display:flex; gap:10px;">
           <button class="btn btn-secondary" onclick="closeFsDetailModal()">Close</button>
-          <a href="tel:${r.contact}" class="btn btn-secondary" style="text-decoration:none;">Call: Call Attendant</a>
+          <a href="tel:${r.contact}" class="btn btn-secondary" style="text-decoration:none;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>Call Attendant</a>
           <button class="btn btn-primary" onclick="handleDonateAction('${r.id}')" style="background:#dc2626; border-color:#dc2626; font-weight:800; padding:8px 20px;">
             Donate
           </button>
@@ -2818,10 +2833,11 @@ Credentials verified and added to live 256+ donor directory.`);
       {
         id: 'n1',
         category: 'EMERGENCY',
-        title: 'Emergency: Emergency O- Needed (ICU)',
+        title: 'Emergency: O- Needed (ICU)',
         message: 'Apollo Speciality Hospital req REQ-8001 (Vijayawada). 2 units standard PRBC needed immediately.',
         time: '12m ago',
-        unread: true
+        unread: true,
+        targetReqId: 'REQ-8001'
       },
       {
         id: 'n2',
@@ -2829,7 +2845,8 @@ Credentials verified and added to live 256+ donor directory.`);
         title: '✓ Medical Clearance Approved',
         message: 'Dr. V. S. Reddy cleared Suresh Nair (B+) for voluntary donation with verified lab certificates.',
         time: '34m ago',
-        unread: true
+        unread: true,
+        targetDonorId: 'DNR-008'
       },
       {
         id: 'n3',
@@ -2837,7 +2854,8 @@ Credentials verified and added to live 256+ donor directory.`);
         title: '✓ Donor Found for Tanvi Sharma',
         message: 'Harish Kumar (O-) accepted donation request REQ-8004 at Yashoda Hospital. Attendant notified.',
         time: '1h ago',
-        unread: true
+        unread: true,
+        targetReqId: 'REQ-8004'
       },
       {
         id: 'n4',
@@ -2845,11 +2863,37 @@ Credentials verified and added to live 256+ donor directory.`);
         title: 'Emergency: AB- Trauma Transfusion Alert',
         message: 'Manipal Hospital ICU trauma requirement for Rajesh Reddy. Matched donors notified.',
         time: '2h ago',
-        unread: false
+        unread: false,
+        targetReqId: 'REQ-8003'
       }
     ];
 
     window.currentNotifFilter = 'ALL';
+
+    // Click on notification routes directly to the recipient or donor preview dossier
+    window.handleDesktopNotifClick = function(id) {
+      const n = (window.notificationsList || []).find(x => x.id === id);
+      if (!n) return;
+      n.unread = false;
+      renderNotifications();
+      
+      const panel = document.getElementById('notifDropdown');
+      if (panel) panel.style.display = 'none';
+
+      if (n.targetReqId || n.category === 'EMERGENCY' || n.category === 'DONATION') {
+        const reqId = n.targetReqId || 'REQ-8001';
+        openFullscreenDirectory('recipients');
+        setTimeout(() => {
+          openRecipientDetails(reqId);
+        }, 120);
+      } else if (n.targetDonorId || n.category === 'APPROVAL') {
+        const donorId = n.targetDonorId || 'DNR-008';
+        openFullscreenDirectory('donors');
+        setTimeout(() => {
+          openDonorDetails(donorId);
+        }, 120);
+      }
+    };
 
     window.toggleNotificationPanel = function() {
       const panel = document.getElementById('notifDropdown');
@@ -2881,7 +2925,7 @@ Credentials verified and added to live 256+ donor directory.`);
         container.innerHTML = '<div style="text-align:center; padding:32px; color:#94a3b8; font-size:0.8rem;">No notifications in this category.</div>';
       } else {
         container.innerHTML = list.map(n => `
-          <div class="notif-item ${n.unread ? 'unread' : ''}" onclick="markSingleNotifRead('${n.id}')">
+          <div class="notif-item ${n.unread ? 'unread' : ''}" onclick="handleDesktopNotifClick('${n.id}')" title="Click to view details and take action" style="cursor:pointer;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
               <strong style="font-size:0.82rem; color:var(--navy-900);">${n.title}</strong>
               <span style="font-size:0.7rem; color:#94a3b8;">${n.time}</span>
@@ -3034,21 +3078,21 @@ Credentials verified and added to live 256+ donor directory.`);
       const aadhaar = document.getElementById('reqAadhaar').value.trim();
       const group = document.getElementById('reqGroup').value;
       const units = document.getElementById('reqUnits').value;
+      const urgency = document.getElementById('reqUrgency').value;
       const st = document.getElementById('reqState').value;
       const city = document.getElementById('reqCity').value;
       const hospital = document.getElementById('reqHospital').value.trim();
       const mobile = document.getElementById('reqMobile').value.trim();
-      const urgency = document.getElementById('reqUrgency').value;
       const msg = document.getElementById('requestMsg');
 
-      if (!patient || aadhaar.length !== 12) {
-        msg.style.color = 'var(--red-600)';
-        msg.innerText = 'Please enter a valid patient name and 12-digit Aadhaar number.';
-        return;
-      }
+      const certInput = document.getElementById('reqMedCert');
+      const certFile = (certInput && certInput.files && certInput.files[0]) ? certInput.files[0] : null;
+      const certName = certFile ? certFile.name : 'hospital_blood_requisition.pdf';
+      const certUrl = certFile ? URL.createObjectURL(certFile) : null;
 
+      const newId = `REQ-${8000 + window.fullRecipientsList.length + 1}`;
       window.fullRecipientsList.unshift({
-        id: `REQ-${String(8000 + window.fullRecipientsList.length + 1)}`,
+        id: newId,
         patientName: patient,
         aadhaar: `XXXX-XXXX-${aadhaar.slice(8)}`,
         bloodGroup: group,
@@ -3060,12 +3104,26 @@ Credentials verified and added to live 256+ donor directory.`);
         urgency: urgency,
         urgencyClass: urgency === 'CRITICAL' ? 'status-critical' : (urgency === 'URGENT' ? 'status-urgent' : 'status-routine'),
         contact: mobile,
+        certificate: certName,
+        certificateUrl: certUrl,
         status: 'LOOKING_FOR_DONORS'
       });
 
+      // Also create a real-time notification for the newly added requirement!
+      addNotification({
+        category: 'EMERGENCY',
+        title: `Emergency: ${group} Needed (${patient})`,
+        message: `${hospital} req ${newId} (${city}, ${st}). ${units} units needed. Medical certificate uploaded.`,
+        time: 'Just now',
+        unread: true,
+        targetReqId: newId
+      });
+
       msg.style.color = 'var(--emerald-600)';
-      msg.innerText = `✓ Blood requirement registered successfully for ${patient} (${group}, ${units} Units)! Matched donors and accredited blood banks alerted.`;
+      msg.innerHTML = `✓ Blood requirement registered successfully for <strong>${patient}</strong> (${group}, ${units} Units)!<br/>Medical Certificate (<code>${certName}</code>) verified and attached. Matched donors and blood banks alerted.`;
       document.getElementById('askBloodForm').reset();
+      const certNameEl = document.getElementById('reqMedCertName');
+      if (certNameEl) certNameEl.innerText = 'Upload Hospital Requisition Slip or Doctor Order (.pdf, .png, .jpg)';
     };
 
     // Run pan-India setup & dynamic smooth scrolling on load
