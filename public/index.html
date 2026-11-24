@@ -1128,11 +1128,11 @@
   <!-- Key Metrics -->
   <div class="metrics-bar">
     <div class="metric-item">
-      <div class="metric-value">256</div>
+      <div class="metric-value" id="heroDonorCount">256</div>
       <div class="metric-label">Enrolled Donors</div>
     </div>
     <div class="metric-item">
-      <div class="metric-value">32</div>
+      <div class="metric-value" id="heroRecipientCount">64</div>
       <div class="metric-label">Active Patient Requests</div>
     </div>
     <div class="metric-item">
@@ -1470,8 +1470,8 @@
             Clinical Status Guide (Hb / Rest)
           </button>
           <div class="tab-switch">
-            <button class="tab-btn active" id="btnTabDonors" onclick="switchDirectoryTab('donors')">Donors (<span id="tabDonorsCount">256</span>)</button>
-            <button class="tab-btn" id="btnTabRecipients" onclick="switchDirectoryTab('recipients')">Recipients Who Want Blood (<span id="tabRecipientsCount">64</span>)</button>
+            <button class="tab-btn active" id="btnTabDonors" onclick="switchDirectoryTab('donors')">Donors</button>
+            <button class="tab-btn" id="btnTabRecipients" onclick="switchDirectoryTab('recipients')">Recipients</button>
           </div>
           <button class="btn btn-secondary" onclick="closeFullscreenDirectory()" style="padding:6px 14px;">✕ Close</button>
         </div>
@@ -2906,6 +2906,15 @@ Credentials verified and added to live 256+ donor directory.`);
       renderNotifications();
     };
 
+    window.updateHeroStatsCounters = function() {
+      const dEl = document.getElementById('heroDonorCount');
+      if (dEl && window.fullDonorsList) dEl.innerText = window.fullDonorsList.length;
+      const rEl = document.getElementById('heroRecipientCount');
+      if (rEl && window.fullRecipientsList) rEl.innerText = window.fullRecipientsList.length;
+      const navBtn = document.querySelector('#navAuthArea button');
+      if (navBtn && window.fullDonorsList) navBtn.innerText = `View ${window.fullDonorsList.length} Donors`;
+    };
+
     window.updateNotificationBadge = function() {
       const unreadCount = (window.notificationsList || []).filter(n => n.unread).length;
       const badge = document.getElementById('notifBadge');
@@ -3051,6 +3060,7 @@ Credentials verified and added to live 256+ donor directory.`);
     window.addEventListener('DOMContentLoaded', () => {
       initPanIndiaSelectors();
       updateNotificationBadge();
+      updateHeroStatsCounters();
 
       // Dynamic navbar offset smooth scrolling for all top nav links
       document.querySelectorAll('a[href^="#"]').forEach(link => {

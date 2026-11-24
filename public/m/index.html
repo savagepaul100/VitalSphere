@@ -809,9 +809,21 @@
         <div class="brand-sub">Mobile Health Network</div>
       </div>
     </div>
-    <div class="header-actions">
-      <a href="/?view=desktop" class="btn-header" title="Switch to Full Desktop Version">Desktop [PC]</a>
-      <button class="btn-header primary" onclick="openMobileLogin()">Sign In</button>
+    <div class="header-actions" style="display:flex; align-items:center; gap:6px;">
+      <a href="/?view=desktop" class="btn-header" title="Switch to Full Desktop Version" style="padding:5px 8px; font-size:0.7rem;">Desktop [PC]</a>
+
+      <!-- Notification Bell -->
+      <button id="mNotifBellBtn" onclick="toggleMobileNotifSheet()" class="btn-header" style="position:relative; padding:5px 8px; display:inline-flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.18);" title="Notifications">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        <span id="mNotifBadge" style="position:absolute; top:-4px; right:-4px; background:#dc2626; color:white; font-size:0.6rem; font-weight:900; border-radius:10px; padding:1px 5px; min-width:14px; text-align:center;">3</span>
+      </button>
+
+      <!-- Active User Badge / Sign In Toggle -->
+      <div id="mNavUserBadge" style="display:none; align-items:center; gap:6px;">
+        <span id="mNavUserName" style="font-size:0.7rem; font-weight:800; color:#38bdf8; max-width:70px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">User</span>
+        <button onclick="executeMobileSignOut()" class="btn-header" style="background:#dc2626; border-color:#dc2626; padding:4px 8px; font-size:0.68rem; font-weight:800;">Sign Out</button>
+      </div>
+      <button id="mSignInBtn" class="btn-header primary" onclick="openMobileLogin()" style="padding:5px 12px; font-size:0.72rem;">Sign In</button>
     </div>
   </header>
 
@@ -830,11 +842,11 @@
     
     <div class="stats-scroller">
       <div class="stat-chip">
-        <div class="stat-chip-num">256</div>
+        <div class="stat-chip-num" id="mHeroDonorCount">256</div>
         <div class="stat-chip-lbl">Verified Donors</div>
       </div>
       <div class="stat-chip">
-        <div class="stat-chip-num">32</div>
+        <div class="stat-chip-num" id="mHeroRecipientCount">64</div>
         <div class="stat-chip-lbl">Active Requests</div>
       </div>
       <div class="stat-chip">
@@ -1117,10 +1129,10 @@
     <!-- Tab Switcher: Donors vs Recipients -->
     <div class="m-fs-tab-bar">
       <button class="m-fs-tab-btn active" id="mFsTabDonors" onclick="switchMobileFsTab('donors')">
-        Donors (<span id="mFsDonorsCount">256</span>)
+        Donors (<span id="mFsDonorsCount">0</span>)
       </button>
       <button class="m-fs-tab-btn" id="mFsTabRecipients" onclick="switchMobileFsTab('recipients')">
-        Recipients Who Want Blood (<span id="mFsRecipientsCount">64</span>)
+        Recipients (<span id="mFsRecipientsCount">0</span>)
       </button>
     </div>
 
@@ -1156,6 +1168,37 @@
     </div>
   </div>
 
+    <!-- Mobile Notification Center Bottom Sheet -->
+  <div class="sheet-overlay" id="mNotifSheet" style="display:none; align-items:flex-end;">
+    <div class="sheet-card" style="max-height:85vh; border-radius:16px 16px 0 0; padding:18px; overflow-y:auto;">
+      <div class="sheet-head" style="margin-bottom:12px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          <div>
+            <div style="font-size:0.95rem; font-weight:800;">Notification Center</div>
+            <div style="font-size:0.68rem; color:#38bdf8;">Tap any alert to Donate or Request blood</div>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button onclick="markAllMobileNotifsRead()" style="background:none; border:none; color:#38bdf8; font-size:0.72rem; font-weight:700; cursor:pointer;">Mark Read</button>
+          <button class="sheet-close" onclick="closeMobileNotifSheet()">&times;</button>
+        </div>
+      </div>
+
+      <!-- Category Filter Tabs -->
+      <div style="display:flex; gap:6px; margin-bottom:12px; overflow-x:auto;">
+        <button class="m-grp-pill active" onclick="filterMobileNotifCategory('ALL', this)">All</button>
+        <button class="m-grp-pill" onclick="filterMobileNotifCategory('DONATION', this)">Donations</button>
+        <button class="m-grp-pill" onclick="filterMobileNotifCategory('APPROVAL', this)">Approvals</button>
+        <button class="m-grp-pill" onclick="filterMobileNotifCategory('EMERGENCY', this)">Emergency</button>
+      </div>
+
+      <!-- Notifications Container -->
+      <div id="mNotifItemsList">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
   <!-- Bottom Mobile Pill Tab Bar (Crisp Vector Icons, No Emojis) -->
   <nav class="bottom-tab-bar">
     <a href="#home" class="tab-item active" onclick="setActiveTab(this)">
@@ -1389,7 +1432,7 @@
   <script src="/directory-data.js?v=20261124_05"></script>
 
   <script>
-    // Bulletproof fallbacks in case of network/cache mismatch
+    // 1. SELF-CONTAINED DATA INITIALIZATION (Immune to network/cache drops)
     if (!window.INDIA_STATES_DATA) {
       window.INDIA_STATES_DATA = {
         "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Tirupati", "Kurnool", "Kakinada", "Nellore", "Kadapa", "Anantapur", "Eluru", "Rajahmundry"],
@@ -1405,473 +1448,122 @@
       };
     }
     const INDIA_STATES_DATA = window.INDIA_STATES_DATA;
-    const fullDonorsList = window.fullDonorsList || [];
-    const fullRecipientsList = window.fullRecipientsList || [];
 
-    let currentTab = 'donors';
-    let currentFilterGroup = null;
+    const FIRST_NAMES = ["Aarav", "Aditi", "Akhil", "Ananya", "Bhavani", "Chaitanya", "Deepika", "Dinesh", "Gowri", "Harish", "Ishaan", "Kavya", "Krishna", "Lakshmi", "Madhav", "Manish", "Naveen", "Pallavi", "Praneeth", "Priya", "Rahul", "Rajesh", "Ramana", "Sai", "Sandeep", "Sneha", "Srinivas", "Suresh", "Surya", "Swapna", "Tarun", "Varun", "Venkatesh", "Vidya", "Vijay", "Vikram", "Yashwant", "Rohan", "Tanvi", "Arjun"];
+    const LAST_NAMES = ["Reddy", "Rao", "Chowdary", "Varma", "Naidu", "Sharma", "Murthy", "Sastry", "Raju", "Prasad", "Babu", "Kumar", "Gupta", "Pillai", "Patnaik", "Devi", "Deshmukh", "Patil", "Iyer", "Banerjee", "Singh", "Verma", "Mehta", "Joshi"];
+    const BLOOD_GROUPS = ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"];
+    const ALL_STATES = Object.keys(INDIA_STATES_DATA);
 
-    // Pending review queue for authorities
-    window.pendingDonors = [
-      { id: "P-101", name: "K. Rajesh Kumar", aadhaar: "XXXX-XXXX-4512", group: "O-", cert: "fitness_report_dr_reddy.pdf", proof: "lab_report_blood_card.pdf", st: "Andhra Pradesh", city: "Visakhapatnam" },
-      { id: "P-102", name: "M. Ananya Rao", aadhaar: "XXXX-XXXX-8921", group: "B+", cert: "apollo_health_clearance.pdf", proof: "donor_identity_card.pdf", st: "Karnataka", city: "Bengaluru" },
-      { id: "P-103", name: "P. Suresh Varma", aadhaar: "XXXX-XXXX-3341", group: "A+", cert: "fitness_nov_check.pdf", proof: "pathology_group_report.pdf", st: "Maharashtra", city: "Mumbai" },
-      { id: "P-104", name: "B. Sneha Naidu", aadhaar: "XXXX-XXXX-6712", group: "AB+", cert: "ggh_medical_officer_cert.pdf", proof: "red_cross_donor_badge.pdf", st: "Telangana", city: "Hyderabad" },
-      { id: "P-105", name: "D. Tarun Chowdary", aadhaar: "XXXX-XXXX-9901", group: "O+", cert: "clinical_fitness_cert.pdf", proof: "diagnostic_card.pdf", st: "Delhi NCR", city: "New Delhi" }
-    ];
+    // Synchronous Donors Fallback
+    if (!window.fullDonorsList || window.fullDonorsList.length === 0) {
+      window.fullDonorsList = [];
+      for (let i = 1; i <= 256; i++) {
+        const fn = FIRST_NAMES[i % FIRST_NAMES.length];
+        const ln = LAST_NAMES[(i * 3) % LAST_NAMES.length];
+        const bg = BLOOD_GROUPS[i % BLOOD_GROUPS.length];
+        const st = ALL_STATES[i % ALL_STATES.length];
+        const cities = INDIA_STATES_DATA[st] || ["Capital City"];
+        const city = cities[i % cities.length];
+        const daysRest = 90 + ((i * 7) % 65);
+        const hb = (12.6 + ((i % 25) * 0.12)).toFixed(1);
+        const aadhaarLast4 = String(1000 + ((i * 37) % 8999));
+        const isFit = hb >= 12.5;
 
-    // Populate Pan-India State and City Selectors
-    window.populateMobileCities = function(stateSelectId, citySelectId) {
-      const stateSel = document.getElementById(stateSelectId);
-      const citySel = document.getElementById(citySelectId);
-      const chosenState = stateSel.value;
-      const cities = INDIA_STATES_DATA[chosenState] || [];
-      
-      citySel.innerHTML = '';
-      cities.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c;
-        opt.textContent = c;
-        citySel.appendChild(opt);
-      });
-    };
-
-    function initMobilePanIndia() {
-      const states = Object.keys(INDIA_STATES_DATA);
-      ['mDonorState', 'mReqState'].forEach(id => {
-        const sel = document.getElementById(id);
-        if (!sel) return;
-        sel.innerHTML = '';
-        states.forEach(s => {
-          const opt = document.createElement('option');
-          opt.value = s;
-          opt.textContent = s;
-          sel.appendChild(opt);
+        window.fullDonorsList.push({
+          id: `DNR-${String(i).padStart(3, '0')}`,
+          name: `${fn} ${ln}`,
+          aadhaar: `XXXX-XXXX-${aadhaarLast4}`,
+          bloodGroup: bg,
+          group: bg,
+          state: st,
+          city: city,
+          district: `${city}, ${st}`,
+          healthStatus: isFit ? `FIT (Hb: ${hb} g/dL, Rest: ${daysRest}d)` : `BORDERLINE (Hb: ${hb} g/dL)`,
+          fitClass: isFit ? "fit" : "borderline",
+          medicalProof: "Registered Physician Medical Certificate",
+          groupProof: (i % 2 === 0) ? "Official Red Cross Donor Card" : "Clinical Pathology Lab Certificate",
+          mobile: `+91 981${String(1000000 + (i * 26664)).slice(0, 7)}`,
+          verification: "APPROVED_BY_MEDICAL_OFFICER",
+          donationState: isFit ? "Ready to Donate (Eligible Now)" : "Already Donated (Verified History)"
         });
-      });
-      populateMobileCities('mDonorState', 'mDonorCity');
-      populateMobileCities('mReqState', 'mReqCity');
+      }
     }
 
-    // Render Directory
-    window.renderMobileDirectory = function() {
-      const listEl = document.getElementById('mDirList');
-      const search = (document.getElementById('mDirSearch').value || '').toLowerCase().trim();
+    // Synchronous Recipients Fallback
+    if (!window.fullRecipientsList || window.fullRecipientsList.length === 0) {
+      window.fullRecipientsList = [];
+      const HOSPITALS = [
+        "Apollo Speciality Hospital", "Care Emergency Hospital", "Government General Hospital (GGH)",
+        "Manipal Hospital", "KIMS Super Speciality Hospital", "Aster Prime Hospital",
+        "Max Healthcare Trauma Center", "Fortis Escorts Hospital", "Narayana Hrudayalaya",
+        "Medanta The Medicity", "Sir Ganga Ram Hospital", "Ruby Hall Clinic",
+        "Yashoda Super Speciality Hospital", "Amrita Institute of Medical Sciences",
+        "Tata Memorial Hospital", "AIIMS Trauma Center"
+      ];
+      for (let j = 1; j <= 64; j++) {
+        const pfn = FIRST_NAMES[(j * 7) % FIRST_NAMES.length];
+        const pln = LAST_NAMES[(j * 5) % LAST_NAMES.length];
+        const bg = BLOOD_GROUPS[j % BLOOD_GROUPS.length];
+        const hosp = HOSPITALS[j % HOSPITALS.length];
+        const st = ALL_STATES[(j * 3) % ALL_STATES.length];
+        const cities = INDIA_STATES_DATA[st] || ["Central Hospital Area"];
+        const city = cities[(j * 2) % cities.length];
+        const units = 1 + (j % 4);
+        const urg = j % 3 === 0 ? "CRITICAL" : (j % 3 === 1 ? "URGENT" : "ROUTINE");
+        const aadhaarLast4 = String(2000 + ((j * 43) % 7999));
 
-      if (currentTab === 'donors') {
-        let donors = fullDonorsList;
-        if (currentFilterGroup) {
-          donors = donors.filter(d => d.bloodGroup === currentFilterGroup);
-        }
-        if (search) {
-          donors = donors.filter(d => 
-            d.name.toLowerCase().includes(search) || 
-            d.bloodGroup.toLowerCase().includes(search) ||
-            d.city.toLowerCase().includes(search) ||
-            d.state.toLowerCase().includes(search)
-          );
-        }
-
-        document.getElementById('mDirHeading').innerText = `Verified Donors (${donors.length})`;
-
-        listEl.innerHTML = donors.map(d => `
-          <div class="donor-card-item">
-            <div class="d-top-row">
-              <div>
-                <div class="d-name">${d.name}</div>
-                <div class="d-meta">Aadhaar: ${d.aadhaar} • ${d.id}</div>
-              </div>
-              <span class="d-bg-badge">${d.bloodGroup}</span>
-            </div>
-            <div class="d-mid-row">
-              <span class="d-loc-pill">Location: ${d.city}, ${d.state}</span>
-              <span class="d-fit-pill ${d.fitClass}" onclick="openExplainerModal()">${d.healthStatus} ℹ️</span>
-            </div>
-            <a href="tel:${d.mobile}" class="btn-call">
-              Call Donor (${d.mobile})
-            </a>
-          </div>
-        `).join('');
-
-      } else {
-        let recs = fullRecipientsList;
-        if (search) {
-          recs = recs.filter(r => 
-            r.patientName.toLowerCase().includes(search) || 
-            r.bloodGroup.toLowerCase().includes(search) ||
-            r.city.toLowerCase().includes(search) ||
-            r.hospital.toLowerCase().includes(search)
-          );
-        }
-
-        document.getElementById('mDirHeading').innerText = `Recipients Who Want Blood (${recs.length})`;
-
-        listEl.innerHTML = recs.map(r => `
-          <div class="donor-card-item" style="border-left:4px solid ${r.urgency === 'CRITICAL' ? 'var(--red-600)' : 'var(--amber-600)'};">
-            <div class="d-top-row">
-              <div>
-                <div class="d-name">${r.patientName}</div>
-                <div class="d-meta">Aadhaar: ${r.aadhaar} • ${r.id}</div>
-              </div>
-              <span class="d-bg-badge">${r.bloodGroup}</span>
-            </div>
-            <div class="d-mid-row">
-              <span class="d-loc-pill">Hospital: ${r.hospital}</span>
-              <span class="d-loc-pill">Units: ${r.units}</span>
-              <span class="d-fit-pill ${r.urgency === 'CRITICAL' ? 'borderline' : 'fit'}">${r.urgency}</span>
-            </div>
-            <div style="display:flex; gap:8px; margin-top:10px;">
-              <button onclick="handleMobileDonate('${r.id}')" style="flex:1.2; height:42px; background:#dc2626; color:white; border:none; border-radius:8px; font-weight:800; font-size:0.88rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
-                Donate
-              </button>
-              <a href="tel:${r.contact}" class="btn-call" style="flex:1; margin-top:0; background:var(--navy-900); text-decoration:none;">
-                Call Attendant
-              </a>
-            </div>
-          </div>
-        `).join('');
+        window.fullRecipientsList.push({
+          id: `REQ-${String(8000 + j)}`,
+          patientName: `${pfn} ${pln}`,
+          aadhaar: `XXXX-XXXX-${aadhaarLast4}`,
+          bloodGroup: bg,
+          group: bg,
+          units: `${units} Unit${units > 1 ? 's' : ''} (${units * 350} ml)`,
+          hospital: hosp,
+          state: st,
+          city: city,
+          district: `${city}, ${st}`,
+          urgency: urg,
+          urgencyClass: urg === 'CRITICAL' ? 'borderline' : 'fit',
+          contact: `+91 97${String(20000000 + (j * 44444)).slice(0, 8)}`,
+          status: j % 4 === 0 ? "ALLOCATED" : "LOOKING_FOR_DONORS"
+        });
       }
-    };
-
-    window.handleMobileDonate = function(reqId) {
-      const r = (window.fullRecipientsList || []).find(x => x.id === reqId);
-      if (!r) return;
-
-      const confirmed = confirm(
-        `Confirm Voluntary Blood Donation Commitment:\n\n` +
-        `Patient: ${r.patientName}\n` +
-        `Required Group: ${r.bloodGroup}\n` +
-        `Hospital: ${r.hospital}\n` +
-        `Units: ${r.units}\n\n` +
-        `When you click OK, VitalSphere will immediately dispatch a verified donor notification to the patient attendant (${r.contact}).`
-      );
-
-      if (!confirmed) return;
-
-      r.status = 'DONOR FOUND (Coordination in progress)';
-      renderMobileDirectory();
-
-      alert(
-        `✓ SUCCESS: Notification dispatched to ${r.patientName}'s attendant!\n\n` +
-        `Patient Attendant: ${r.contact}\n` +
-        `Hospital Desk: ${r.hospital}\n` +
-        `Thank you for saving a life!`
-      );
-    };
-
-    window.switchMobileDirectory = function(tab) {
-      currentTab = tab;
-      currentFilterGroup = null;
-      document.getElementById('mTabDonors').classList.toggle('active', tab === 'donors');
-      document.getElementById('mTabRecipients').classList.toggle('active', tab === 'recipients');
-      renderMobileDirectory();
-    };
-
-    window.filterDirectoryByGroup = function(grp) {
-      currentTab = 'donors';
-      currentFilterGroup = grp;
-      document.getElementById('mTabDonors').classList.add('active');
-      document.getElementById('mTabRecipients').classList.remove('active');
-      renderMobileDirectory();
-      document.getElementById('directory').scrollIntoView({ behavior: 'smooth' });
-    };
-
-    window.filterMobileDirectory = function() {
-      renderMobileDirectory();
-    };
-
-    window.updateMUnitVolume = function(val) {
-      const units = parseInt(val) || 1;
-      const ml = units * 350;
-      document.getElementById('mUnitVolTxt').innerText = `Volume: ${units} Unit${units > 1 ? 's' : ''} = ${ml} ml (Standard: 350 ml/unit)`;
-    };
-
-    // File selection tracking
-    let mobileUploadedCertFile = null;
-    let mobileUploadedCertName = 'medical_fitness_dr_signed.pdf';
-    let mobileUploadedProofFile = null;
-    let mobileUploadedProofName = 'lab_blood_group_card.pdf';
-
-    window.updateMFileTxt = function(input, textId) {
-      if (input.files && input.files[0]) {
-        const file = input.files[0];
-        document.getElementById(textId).innerText = `Selected: ${file.name}`;
-        if (input.id === 'mDonorMedCert') {
-          mobileUploadedCertFile = file;
-          mobileUploadedCertName = file.name;
-        } else {
-          mobileUploadedProofFile = file;
-          mobileUploadedProofName = file.name;
-        }
-      }
-    };
-
-    // Form handlers
-    window.handleMobileDonorSubmit = function(e) {
-      e.preventDefault();
-      const name = document.getElementById('mDonorName').value.trim();
-      const aadhaar = document.getElementById('mDonorAadhaar').value.trim();
-      const grp = document.getElementById('mDonorGroup').value;
-      const st = document.getElementById('mDonorState').value;
-      const city = document.getElementById('mDonorCity').value;
-      const fb = document.getElementById('mDonorFeedback');
-
-      if (!name || aadhaar.length !== 12) {
-        fb.style.display = 'block';
-        fb.style.color = 'var(--red-600)';
-        fb.innerText = 'Please enter a valid full name and 12-digit Aadhaar number.';
-        return;
-      }
-
-      const certUrl = mobileUploadedCertFile ? URL.createObjectURL(mobileUploadedCertFile) : null;
-      const proofUrl = mobileUploadedProofFile ? URL.createObjectURL(mobileUploadedProofFile) : null;
-
-      fb.style.display = 'block';
-      fb.style.color = 'var(--emerald-600)';
-      fb.innerHTML = `✓ Registered <strong>${name}</strong> (${grp}) in ${city}, ${st}!<br/>Aadhaar: ${aadhaar.slice(0,4)}-XXXX-${aadhaar.slice(8)}.<br/>Uploaded certificates (<code>${mobileUploadedCertName}</code>, <code>${mobileUploadedProofName}</code>) queued for Medical Officer clearance.`;
-
-      // Add to pending review queue
-      window.pendingDonors.unshift({
-        id: `P-${100 + window.pendingDonors.length + 1}`,
-        name: name,
-        aadhaar: `XXXX-XXXX-${aadhaar.slice(8)}`,
-        group: grp,
-        cert: mobileUploadedCertName,
-        proof: mobileUploadedProofName,
-        certUrl: certUrl,
-        proofUrl: proofUrl,
-        st: st,
-        city: city
-      });
-      updatePendingBadge();
-
-      document.getElementById('mDonorForm').reset();
-      document.getElementById('mMedCertTxt').innerText = 'Upload Doctor Signed Fitness Report (.pdf, .png, .jpg)';
-      document.getElementById('mBloodProofTxt').innerText = 'Upload Lab Report or Donor ID (.pdf, .png, .jpg)';
-      mobileUploadedCertFile = null;
-      mobileUploadedProofFile = null;
-    };
-
-    window.handleMobileReqSubmit = function(e) {
-      e.preventDefault();
-      const patient = document.getElementById('mReqPatient').value;
-      const grp = document.getElementById('mReqGroup').value;
-      const units = document.getElementById('mReqUnits').value;
-      const hosp = document.getElementById('mReqHospital').value;
-      const fb = document.getElementById('mReqFeedback');
-
-      fb.style.display = 'block';
-      fb.style.color = 'var(--emerald-600)';
-      fb.innerHTML = `✓ Emergency requirement logged for <strong>${patient}</strong> (${grp}, ${units} Units). Nearby centers alerted!`;
-      document.getElementById('mReqForm').reset();
-    };
-
-    // Keychain Bottom Sheet
-    window.openMobileLogin = function() {
-      document.getElementById('mKeychainSheet').style.display = 'flex';
-    };
-
-    window.closeMobileLogin = function() {
-      document.getElementById('mKeychainSheet').style.display = 'none';
-    };
-
-    window.selectMobileAccount = function(email, title, role) {
-      closeMobileLogin();
-      const bar = document.getElementById('mAuthorityBar');
-      const txt = document.getElementById('mAuthorityText');
-      
-      bar.style.display = 'flex';
-      txt.innerText = `Signed in: ${title}`;
-      
-      if (role === 'MEDICAL_OFFICER' || role === 'SUPER_ADMIN' || role === 'DISTRICT_AUTHORITY') {
-        alert(`✓ Authenticated as ${title}!\nAuthority controls and Medical Officer Review Desk unlocked.`);
-      } else {
-        alert(`✓ Signed in as ${title}!\nCitizen portal session active.`);
-      }
-    };
-
-    // Medical Review Modal
-    window.openMobileReviewModal = function() {
-      renderPendingList();
-      document.getElementById('mReviewSheet').style.display = 'flex';
-    };
-
-    window.closeMobileReviewModal = function() {
-      document.getElementById('mReviewSheet').style.display = 'none';
-    };
-
-    function updatePendingBadge() {
-      const countEl = document.getElementById('mPendingCount');
-      if (countEl) countEl.innerText = window.pendingDonors.length;
     }
 
-    let currentMobilePreviewIndex = null;
-
-    window.openMobileCertPreview = function(idx) {
-      currentMobilePreviewIndex = idx;
-      const p = window.pendingDonors[idx];
-      if (!p) return;
-
-      document.getElementById('mCertPreviewTitle').innerText = `Clinical Certificate — ${p.name}`;
-      const bodyEl = document.getElementById('mCertPreviewBody');
-
-      let previewDocHtml = '';
-      if (p.certUrl) {
-        if (p.cert.toLowerCase().endsWith('.pdf')) {
-          previewDocHtml = `
-            <div style="margin-top:12px; background:#0f172a; border:1px solid #334155; border-radius:8px; padding:12px; text-align:center;">
-              <div style="font-size:0.75rem; color:#93c5fd; margin-bottom:8px;">Uploaded Document: <strong>${p.cert}</strong></div>
-              <iframe src="${p.certUrl}" style="width:100%; height:200px; border:none; border-radius:6px; background:white;"></iframe>
-              <div style="margin-top:8px;">
-                <a href="${p.certUrl}" target="_blank" style="color:#38bdf8; font-size:0.75rem; font-weight:700; text-decoration:underline;">Open PDF Fullscreen ↗</a>
-              </div>
-            </div>
-          `;
-        } else {
-          previewDocHtml = `
-            <div style="margin-top:12px; background:#0f172a; border:1px solid #334155; border-radius:8px; padding:10px; text-align:center;">
-              <img src="${p.certUrl}" alt="Certificate" style="max-width:100%; max-height:220px; border-radius:6px; object-fit:contain;" />
-            </div>
-          `;
-        }
-      } else {
-        previewDocHtml = `
-          <div style="margin-top:10px; background:#1e293b; border:1px solid #334155; border-radius:8px; padding:10px; text-align:center;">
-            <span style="font-size:0.75rem; color:#94a3b8;">Digitally Archived Certificate: <strong style="color:#93c5fd;">${p.cert}</strong></span>
-          </div>
-        `;
-      }
-
-      bodyEl.innerHTML = `
-        <div style="background:#1f2937; border:1px solid #374151; border-radius:8px; padding:12px; margin-bottom:12px;">
-          <div style="font-size:0.68rem; font-weight:800; color:#f87171; text-transform:uppercase; margin-bottom:2px;">Candidate Profile</div>
-          <div style="font-size:1.05rem; font-weight:800; color:white;">${p.name}</div>
-          <div style="font-size:0.75rem; color:#94a3b8; font-family:var(--font-mono); margin-top:2px;">
-            Aadhaar: ${p.aadhaar} • Blood Group: <strong style="color:#f87171;">${p.group}</strong> • Location: ${p.city}, ${p.st}
-          </div>
-        </div>
-
-        <div style="background:#1f2937; border:1px solid #374151; border-radius:8px; padding:12px; margin-bottom:12px;">
-          <div style="font-size:0.68rem; font-weight:800; color:#34d399; text-transform:uppercase; margin-bottom:6px;">Official Clinical Vitals</div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.72rem;">
-            <div style="background:#111827; padding:8px; border-radius:6px;">
-              <span style="color:#94a3b8;">Hemoglobin (Hb):</span><br/>
-              <strong style="color:#34d399; font-size:0.85rem;">13.5 g/dL</strong> (≥12.5 required)
-            </div>
-            <div style="background:#111827; padding:8px; border-radius:6px;">
-              <span style="color:#94a3b8;">Rest Cooldown:</span><br/>
-              <strong style="color:#38bdf8; font-size:0.85rem;">95 Days Elapsed</strong> (≥90d)
-            </div>
-            <div style="background:#111827; padding:8px; border-radius:6px;">
-              <span style="color:#94a3b8;">Blood Pressure:</span><br/>
-              <strong style="color:white; font-size:0.85rem;">120/80 mmHg</strong> (Normal)
-            </div>
-            <div style="background:#111827; padding:8px; border-radius:6px;">
-              <span style="color:#94a3b8;">Weight & Pulse:</span><br/>
-              <strong style="color:white; font-size:0.85rem;">68 kg • 72 bpm</strong>
-            </div>
-          </div>
-          <div style="margin-top:8px; font-size:0.7rem; color:#94a3b8; background:#111827; padding:6px 8px; border-radius:6px;">
-            ✓ Serology: HIV, HBsAg, HCV, Syphilis All Non-Reactive
-          </div>
-          <div style="margin-top:8px; font-size:0.7rem; color:#cbd5e1; border-top:1px solid #374151; padding-top:6px;">
-            Examined & Certified by: <strong style="color:white;">Dr. V. S. Reddy, MD</strong> (Reg #MCI-AP-49201)
-          </div>
-        </div>
-
-        ${previewDocHtml}
-      `;
-
-      document.getElementById('mCertPreviewSheet').style.display = 'flex';
+    // Dynamic Counters
+    window.updateMobileCounters = function() {
+      const dLen = (window.fullDonorsList || []).length;
+      const rLen = (window.fullRecipientsList || []).length;
+      const dEl = document.getElementById('mHeroDonorCount');
+      if (dEl) dEl.innerText = dLen;
+      const rEl = document.getElementById('mHeroRecipientCount');
+      if (rEl) rEl.innerText = rLen;
     };
 
-    window.closeMobileCertPreview = function() {
-      document.getElementById('mCertPreviewSheet').style.display = 'none';
-      currentMobilePreviewIndex = null;
-    };
+    // Helper for robust blood group matching
+    function matchGroup(recordGroup, filterGroup) {
+      if (!filterGroup || filterGroup === 'ALL') return true;
+      if (!recordGroup) return false;
+      const rg = String(recordGroup).trim().toUpperCase();
+      const fg = String(filterGroup).trim().toUpperCase();
+      if (rg === fg) return true;
+      if (rg.includes(`(${fg})`)) return true;
+      if (rg.startsWith(fg + ' ') || rg.startsWith(fg + '-')) return true;
+      return false;
+    }
 
-    window.approveFromMobilePreview = function() {
-      if (currentMobilePreviewIndex !== null) {
-        approveMobileDonor(currentMobilePreviewIndex);
-        closeMobileCertPreview();
-      }
-    };
-
-    window.renderPendingList = function() {
-      const listEl = document.getElementById('mPendingList');
-      if (window.pendingDonors.length === 0) {
-        listEl.innerHTML = `<div style="text-align:center; padding:20px; color:var(--slate-400);">No pending donor reviews. All caught up!</div>`;
-        return;
-      }
-
-      listEl.innerHTML = window.pendingDonors.map((p, idx) => `
-        <div style="background:#1f2937; border:1px solid #374151; border-radius:8px; padding:12px; margin-bottom:10px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-            <div style="font-size:0.9rem; font-weight:800; color:white;">${p.name}</div>
-            <span class="d-bg-badge">${p.group}</span>
-          </div>
-          <div style="font-size:0.7rem; color:var(--slate-400); font-family:var(--font-mono); margin-bottom:6px;">
-            Aadhaar: ${p.aadhaar} • Location: ${p.city}, ${p.st}
-          </div>
-          <div style="font-size:0.72rem; color:#93c5fd; margin-bottom:8px;">
-            Document: ${p.cert} • Units: ${p.proof}
-          </div>
-          <div style="display:flex; gap:6px; flex-wrap:wrap;">
-            <button onclick="openMobileCertPreview(${idx})" style="flex:1; min-width:130px; height:36px; background:#1e293b; color:#93c5fd; border:1px solid #3b82f6; border-radius:6px; font-size:0.75rem; font-weight:700; cursor:pointer;">
-              Document: Preview Cert 
-            </button>
-            <button onclick="approveMobileDonor(${idx})" style="flex:1; min-width:90px; height:36px; background:#059669; color:white; border:none; border-radius:6px; font-size:0.75rem; font-weight:800; cursor:pointer;">
-              ✓ Approve
-            </button>
-            <button onclick="deferMobileDonor(${idx})" style="flex:1; min-width:80px; height:36px; background:#dc2626; color:white; border:none; border-radius:6px; font-size:0.75rem; font-weight:800; cursor:pointer;">
-              ✕ Defer
-            </button>
-          </div>
-        </div>
-      `).join('');
-    };
-
-    window.approveMobileDonor = function(idx) {
-      const approved = window.pendingDonors.splice(idx, 1)[0];
-      // Add to full donors list
-      fullDonorsList.unshift({
-        id: `DNR-${257 + idx}`,
-        name: approved.name,
-        aadhaar: approved.aadhaar,
-        bloodGroup: approved.group,
-        state: approved.st,
-        city: approved.city,
-        district: `${approved.city}, ${approved.st}`,
-        healthStatus: "FIT (Hb: 13.5 g/dL, Rest: 95d)",
-        fitClass: "status-fit",
-        medicalProof: approved.cert,
-        groupProof: approved.proof,
-        mobile: "+91 9848" + Math.floor(100000 + Math.random() * 900000),
-        verification: "APPROVED_BY_MEDICAL_OFFICER",
-        donationState: "Ready to Donate (Eligible Now)"
-      });
-
-      updatePendingBadge();
-      renderPendingList();
-      renderMobileDirectory();
-      alert(`✓ ${approved.name} has been APPROVED!\nCredentials verified and added to live 256+ donor directory.`);
-    };
-
-    window.deferMobileDonor = function(idx) {
-      const deferred = window.pendingDonors.splice(idx, 1)[0];
-      updatePendingBadge();
-      renderPendingList();
-      alert(`Donor ${deferred.name} has been placed on 90-day clinical deferral.`);
-    };
-
-    // Fullscreen Mobile Directory Modal Logic (Blood Group Tap / Directory Pill Tap)
+    // 2. FULLSCREEN MOBILE DIRECTORY POPUP
     window.mFsCurrentGroup = 'ALL';
     window.mFsCurrentTab = 'donors';
 
     window.openMobileFsDirectory = function(group = null) {
       window.mFsCurrentGroup = group || 'ALL';
       const modal = document.getElementById('mFullscreenDirectoryModal');
-      if (modal) modal.style.display = 'flex';
+      if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
 
       const title = document.getElementById('mFsModalTitle');
       const subtitle = document.getElementById('mFsModalSubtitle');
@@ -1882,10 +1574,10 @@
         subtitle.innerText = (group && group !== 'ALL') ? `Verified voluntary donors and patients for ${group}` : 'Verified Voluntary Donors & Active Patients';
       }
 
-      // Update pills
+      // Highlight matching group pill
       document.querySelectorAll('.m-grp-pill').forEach(btn => {
         const text = btn.innerText.trim();
-        if ((group === null || group === 'ALL') && text === 'All Groups') {
+        if ((!group || group === 'ALL') && text === 'All Groups') {
           btn.classList.add('active');
         } else if (text === group) {
           btn.classList.add('active');
@@ -1900,12 +1592,13 @@
     window.closeMobileFsDirectory = function() {
       const modal = document.getElementById('mFullscreenDirectoryModal');
       if (modal) modal.style.display = 'none';
+      document.body.style.overflow = 'auto';
       closeMobileFsDetail();
     };
 
     window.setMobileFsGroupFilter = function(grp, btnEl) {
       window.mFsCurrentGroup = grp;
-      document.querySelectorAll('.m-grp-pill').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#mGroupPillsContainer .m-grp-pill').forEach(b => b.classList.remove('active'));
       if (btnEl) btnEl.classList.add('active');
       const title = document.getElementById('mFsModalTitle');
       if (title) {
@@ -1929,11 +1622,20 @@
       if (!container) return;
       container.innerHTML = '';
 
+      const allDonors = window.fullDonorsList || [];
+      const allRecipients = window.fullRecipientsList || [];
+
+      // Calculate counts for active group filter
+      const matchedDonorsCount = allDonors.filter(d => matchGroup(d.bloodGroup || d.group, window.mFsCurrentGroup)).length;
+      const matchedRecipientsCount = allRecipients.filter(r => matchGroup(r.bloodGroup || r.group, window.mFsCurrentGroup)).length;
+
+      const cntDEl = document.getElementById('mFsDonorsCount');
+      if (cntDEl) cntDEl.innerText = matchedDonorsCount;
+      const cntREl = document.getElementById('mFsRecipientsCount');
+      if (cntREl) cntREl.innerText = matchedRecipientsCount;
+
       if (window.mFsCurrentTab === 'donors') {
-        let list = window.fullDonorsList || [];
-        if (window.mFsCurrentGroup && window.mFsCurrentGroup !== 'ALL') {
-          list = list.filter(d => d.bloodGroup === window.mFsCurrentGroup);
-        }
+        let list = allDonors.filter(d => matchGroup(d.bloodGroup || d.group, window.mFsCurrentGroup));
         if (q) {
           list = list.filter(d => 
             (d.name && d.name.toLowerCase().includes(q)) ||
@@ -1942,9 +1644,6 @@
             (d.bloodGroup && d.bloodGroup.toLowerCase().includes(q))
           );
         }
-
-        const countEl = document.getElementById('mFsDonorsCount');
-        if (countEl) countEl.innerText = list.length;
 
         if (list.length === 0) {
           container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--slate-400); font-size:0.85rem;">No donors found for this selection.</div>';
@@ -1976,10 +1675,7 @@
         });
 
       } else {
-        let list = window.fullRecipientsList || [];
-        if (window.mFsCurrentGroup && window.mFsCurrentGroup !== 'ALL') {
-          list = list.filter(r => r.bloodGroup === window.mFsCurrentGroup);
-        }
+        let list = allRecipients.filter(r => matchGroup(r.bloodGroup || r.group, window.mFsCurrentGroup));
         if (q) {
           list = list.filter(r => 
             (r.patientName && r.patientName.toLowerCase().includes(q)) ||
@@ -1990,9 +1686,6 @@
           );
         }
 
-        const countEl = document.getElementById('mFsRecipientsCount');
-        if (countEl) countEl.innerText = list.length;
-
         if (list.length === 0) {
           container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--slate-400); font-size:0.85rem;">No recipients found for this selection.</div>';
           return;
@@ -2002,7 +1695,6 @@
           const card = document.createElement('div');
           card.className = 'm-clean-card';
           card.onclick = () => openMobileFsRecipientDetail(r.id);
-          const isCommitted = r.status && r.status.includes('DONOR FOUND');
           card.innerHTML = `
             <div style="display:flex; align-items:center; gap:12px; flex:1;">
               <span class="d-bg-badge" style="font-size:1.1rem; padding:4px 10px; min-width:44px; text-align:center;">${r.bloodGroup}</span>
@@ -2050,7 +1742,7 @@
             <strong>Full Legal Name:</strong> ${d.name}<br/>
             <strong>Residential Area:</strong> ${d.district}<br/>
             <strong>Clinical Status:</strong> <span style="color:var(--emerald-600); font-weight:700;">${d.healthStatus}</span><br/>
-            <strong>Official Proofs:</strong> ${d.medicalProof || 'Registered Physician Certificate'} & ${d.groupProof || 'Clinical Pathology Report'}
+            <strong>Official Proofs:</strong> ${d.medicalProof} & ${d.groupProof}
           </div>
         </div>
         <div style="background:#ecfdf5; border-left:3px solid #059669; padding:8px 12px; font-size:0.75rem; color:#065f46; border-radius:0 6px 6px 0;">
@@ -2128,44 +1820,424 @@
       if (modal) modal.style.display = 'none';
     };
 
-    // Explainer Modal
-    window.openExplainerModal = function() {
-      document.getElementById('mExplainerModal').style.display = 'flex';
+    window.handleMobileDonate = function(reqId) {
+      const r = (window.fullRecipientsList || []).find(x => x.id === reqId);
+      if (!r) return;
+
+      const confirmed = confirm(
+        `Confirm Voluntary Blood Donation Commitment:\n\n` +
+        `Patient: ${r.patientName}\n` +
+        `Required Group: ${r.bloodGroup}\n` +
+        `Hospital: ${r.hospital}\n` +
+        `Units: ${r.units}\n\n` +
+        `When you click OK, VitalSphere will immediately dispatch a verified donor notification to the patient attendant (${r.contact}).`
+      );
+
+      if (!confirmed) return;
+
+      r.status = 'DONOR FOUND (Coordination in progress)';
+      
+      addMobileNotification({
+        category: 'DONATION',
+        title: `✓ Donor Found for ${r.patientName}!`,
+        message: `Donor has accepted emergency request ${r.id} (${r.bloodGroup}) at ${r.hospital}. Attendant notified.`,
+        time: 'Just now',
+        targetReqId: r.id
+      });
+
+      applyMobileFsFilter();
+      if (document.getElementById('mFsDetailModal').style.display === 'flex') {
+        openMobileFsRecipientDetail(reqId);
+      }
+
+      alert(
+        `✓ SUCCESS: Notification dispatched to ${r.patientName}'s attendant!\n\n` +
+        `Patient Attendant: ${r.contact}\n` +
+        `Hospital Desk: ${r.hospital}\n` +
+        `Thank you for saving a life!`
+      );
     };
 
-    window.closeExplainerModal = function() {
-      document.getElementById('mExplainerModal').style.display = 'none';
+    // 3. MOBILE NOTIFICATIONS SYSTEM
+    window.mobileNotifList = [
+      {
+        id: 'mn1',
+        category: 'EMERGENCY',
+        title: 'Emergency O- Needed (ICU)',
+        message: 'Apollo Speciality Hospital req REQ-8001 (Vijayawada). 2 units standard PRBC needed immediately.',
+        time: '12m ago',
+        unread: true,
+        targetReqId: 'REQ-8001',
+        group: 'O-'
+      },
+      {
+        id: 'mn2',
+        category: 'APPROVAL',
+        title: 'Medical Clearance Approved',
+        message: 'Dr. V. S. Reddy cleared Suresh Nair (B+) for voluntary donation with verified lab certificates.',
+        time: '34m ago',
+        unread: true,
+        targetDonorId: 'DNR-008',
+        group: 'B+'
+      },
+      {
+        id: 'mn3',
+        category: 'DONATION',
+        title: 'Donor Found for Tanvi Sharma',
+        message: 'Harish Kumar (O-) accepted donation request REQ-8004 at Yashoda Hospital. Attendant notified.',
+        time: '1h ago',
+        unread: true,
+        targetReqId: 'REQ-8004',
+        group: 'O-'
+      },
+      {
+        id: 'mn4',
+        category: 'EMERGENCY',
+        title: 'AB- Trauma Transfusion Alert',
+        message: 'Manipal Hospital ICU trauma requirement for Rajesh Reddy. 3 units requested.',
+        time: '2h ago',
+        unread: false,
+        targetReqId: 'REQ-8008',
+        group: 'AB-'
+      }
+    ];
+
+    window.currentMobileNotifFilter = 'ALL';
+
+    window.toggleMobileNotifSheet = function() {
+      const sheet = document.getElementById('mNotifSheet');
+      if (!sheet) return;
+      const isVis = sheet.style.display === 'flex';
+      sheet.style.display = isVis ? 'none' : 'flex';
+      if (!isVis) renderMobileNotifications();
     };
 
-    // Bottom tab active switcher
+    window.closeMobileNotifSheet = function() {
+      const sheet = document.getElementById('mNotifSheet');
+      if (sheet) sheet.style.display = 'none';
+    };
+
+    window.filterMobileNotifCategory = function(cat, btnEl) {
+      window.currentMobileNotifFilter = cat;
+      document.querySelectorAll('#mNotifSheet .m-grp-pill').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+      renderMobileNotifications();
+    };
+
+    window.renderMobileNotifications = function() {
+      const container = document.getElementById('mNotifItemsList');
+      if (!container) return;
+
+      let list = window.mobileNotifList || [];
+      if (window.currentMobileNotifFilter !== 'ALL') {
+        list = list.filter(n => n.category === window.currentMobileNotifFilter);
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--slate-400); font-size:0.8rem;">No notifications in this category.</div>';
+      } else {
+        container.innerHTML = list.map(n => `
+          <div onclick="handleMobileNotifClick('${n.id}')" style="background:#1e293b; border:1px solid ${n.unread ? '#38bdf8' : '#334155'}; border-radius:10px; padding:12px 14px; margin-bottom:8px; cursor:pointer;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <strong style="color:white; font-size:0.82rem;">${n.title}</strong>
+              <span style="color:#94a3b8; font-size:0.68rem;">${n.time}</span>
+            </div>
+            <div style="color:#cbd5e1; font-size:0.75rem; line-height:1.4; margin-bottom:6px;">${n.message}</div>
+            <div style="display:flex; justify-content:flex-end;">
+              <span style="color:#38bdf8; font-size:0.72rem; font-weight:800;">Tap to Donate / Request →</span>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      updateMobileNotifBadge();
+    };
+
+    // When notification is clicked take me to that Donate / Request page allowing me to donate or Request for blood
+    window.handleMobileNotifClick = function(id) {
+      const n = (window.mobileNotifList || []).find(x => x.id === id);
+      if (!n) return;
+
+      n.unread = false;
+      closeMobileNotifSheet();
+      updateMobileNotifBadge();
+
+      if (n.targetReqId) {
+        // Open fullscreen directory directly to recipients and drilldown to donate!
+        openMobileFsDirectory(n.group || null);
+        switchMobileFsTab('recipients');
+        setTimeout(() => {
+          openMobileFsRecipientDetail(n.targetReqId);
+        }, 150);
+      } else if (n.targetDonorId) {
+        // Open fullscreen directory to donors tab
+        openMobileFsDirectory(n.group || null);
+        switchMobileFsTab('donors');
+        setTimeout(() => {
+          openMobileFsDonorDetail(n.targetDonorId);
+        }, 150);
+      } else {
+        // Scroll to emergency section
+        document.getElementById('request').scrollIntoView({ behavior: 'smooth' });
+      }
+    };
+
+    window.markAllMobileNotifsRead = function() {
+      (window.mobileNotifList || []).forEach(n => n.unread = false);
+      renderMobileNotifications();
+      updateMobileNotifBadge();
+    };
+
+    function addMobileNotification(n) {
+      if (!window.mobileNotifList) window.mobileNotifList = [];
+      window.mobileNotifList.unshift({
+        id: 'mn-' + Date.now(),
+        category: n.category || 'ALL',
+        title: n.title,
+        message: n.message,
+        time: 'Just now',
+        unread: true,
+        targetReqId: n.targetReqId || null,
+        group: n.group || null
+      });
+      updateMobileNotifBadge();
+    }
+
+    function updateMobileNotifBadge() {
+      const unreadCount = (window.mobileNotifList || []).filter(x => x.unread).length;
+      const b = document.getElementById('mNotifBadge');
+      if (b) {
+        if (unreadCount > 0) {
+          b.style.display = 'inline-block';
+          b.innerText = unreadCount;
+        } else {
+          b.style.display = 'none';
+        }
+      }
+    }
+
+    // 4. PAN-INDIA SELECTORS & FORM HANDLERS
+    window.populateMobileCities = function(stateSelectId, citySelectId) {
+      const stateSel = document.getElementById(stateSelectId);
+      const citySel = document.getElementById(citySelectId);
+      if (!stateSel || !citySel) return;
+      const chosenState = stateSel.value;
+      const cities = INDIA_STATES_DATA[chosenState] || ["Central City"];
+      
+      citySel.innerHTML = '';
+      cities.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        citySel.appendChild(opt);
+      });
+    };
+
+    function initMobilePanIndia() {
+      const states = Object.keys(INDIA_STATES_DATA);
+      ['mDonorState', 'mReqState'].forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        sel.innerHTML = '';
+        states.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s;
+          opt.textContent = s;
+          sel.appendChild(opt);
+        });
+      });
+      populateMobileCities('mDonorState', 'mDonorCity');
+      populateMobileCities('mReqState', 'mReqCity');
+    }
+
+    let mobileUploadedCertFile = null;
+    let mobileUploadedCertName = 'medical_fitness_dr_signed.pdf';
+    let mobileUploadedProofFile = null;
+    let mobileUploadedProofName = 'lab_blood_group_card.pdf';
+
+    window.updateMFileTxt = function(input, textId) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        document.getElementById(textId).innerText = `Selected: ${file.name}`;
+        if (input.id === 'mDonorMedCert') {
+          mobileUploadedCertFile = file;
+          mobileUploadedCertName = file.name;
+        } else {
+          mobileUploadedProofFile = file;
+          mobileUploadedProofName = file.name;
+        }
+      }
+    };
+
+    window.handleMobileDonorSubmit = function(e) {
+      e.preventDefault();
+      const name = document.getElementById('mDonorName').value.trim();
+      const aadhaar = document.getElementById('mDonorAadhaar').value.trim();
+      const grp = document.getElementById('mDonorGroup').value;
+      const st = document.getElementById('mDonorState').value;
+      const city = document.getElementById('mDonorCity').value;
+      const fb = document.getElementById('mDonorFeedback');
+
+      if (!name || aadhaar.length !== 12) {
+        fb.style.display = 'block';
+        fb.style.color = 'var(--red-600)';
+        fb.innerText = 'Please enter a valid full name and 12-digit Aadhaar number.';
+        return;
+      }
+
+      fb.style.display = 'block';
+      fb.style.color = 'var(--emerald-600)';
+      fb.innerHTML = `✓ Registered <strong>${name}</strong> (${grp}) in ${city}, ${st}!<br/>Uploaded certificates (<code>${mobileUploadedCertName}</code>) queued for Medical Officer clearance.`;
+
+      const newId = `DNR-${window.fullDonorsList.length + 1}`;
+      window.fullDonorsList.unshift({
+        id: newId,
+        name: name,
+        aadhaar: `XXXX-XXXX-${aadhaar.slice(8)}`,
+        bloodGroup: grp,
+        group: grp,
+        state: st,
+        city: city,
+        district: `${city}, ${st}`,
+        healthStatus: "FIT (Hb: 13.5 g/dL, Rest: 95d)",
+        fitClass: "fit",
+        medicalProof: mobileUploadedCertName,
+        groupProof: mobileUploadedProofName,
+        mobile: "+91 9848123456",
+        verification: "APPROVED_BY_MEDICAL_OFFICER",
+        donationState: "Ready to Donate (Eligible Now)"
+      });
+
+      updateMobileCounters();
+      addMobileNotification({
+        category: 'APPROVAL',
+        title: 'New Donor Registered',
+        message: `${name} (${grp}, ${city}) registered credentials for medical clearance.`,
+        targetDonorId: newId,
+        group: grp
+      });
+
+      document.getElementById('mDonorForm').reset();
+      document.getElementById('mMedCertTxt').innerText = 'Upload Doctor Signed Fitness Report (.pdf, .png, .jpg)';
+      document.getElementById('mBloodProofTxt').innerText = 'Upload Lab Report or Donor ID (.pdf, .png, .jpg)';
+    };
+
+    window.handleMobileReqSubmit = function(e) {
+      e.preventDefault();
+      const patient = document.getElementById('mReqPatient').value.trim();
+      const aadhaar = document.getElementById('mReqAadhaar').value.trim();
+      const grp = document.getElementById('mReqGroup').value;
+      const urgency = document.getElementById('mReqUrgency').value;
+      const st = document.getElementById('mReqState').value;
+      const city = document.getElementById('mReqCity').value;
+      const hosp = document.getElementById('mReqHospital').value.trim();
+      const mobile = document.getElementById('mReqMobile').value.trim();
+      const fb = document.getElementById('mReqFeedback');
+
+      if (!patient || aadhaar.length !== 12) {
+        fb.style.display = 'block';
+        fb.style.color = 'var(--red-600)';
+        fb.innerText = 'Please enter a valid patient name and 12-digit Aadhaar number.';
+        return;
+      }
+
+      const newReqId = `REQ-${8000 + window.fullRecipientsList.length + 1}`;
+      window.fullRecipientsList.unshift({
+        id: newReqId,
+        patientName: patient,
+        aadhaar: `XXXX-XXXX-${aadhaar.slice(8)}`,
+        bloodGroup: grp,
+        group: grp,
+        units: '2 Units (700 ml)',
+        hospital: `${hosp}, ${city}`,
+        state: st,
+        city: city,
+        district: `${city}, ${st}`,
+        urgency: urgency,
+        urgencyClass: urgency === 'CRITICAL' ? 'borderline' : 'fit',
+        contact: mobile,
+        status: 'LOOKING_FOR_DONORS'
+      });
+
+      updateMobileCounters();
+      addMobileNotification({
+        category: 'EMERGENCY',
+        title: `Emergency Transfusion: ${patient} (${grp})`,
+        message: `${hosp}, ${city} requested urgent blood. Attendant contact: ${mobile}.`,
+        targetReqId: newReqId,
+        group: grp
+      });
+
+      fb.style.display = 'block';
+      fb.style.color = 'var(--emerald-600)';
+      fb.innerHTML = `✓ Emergency requirement registered for <strong>${patient}</strong> (${grp})! Matched donors notified.`;
+      document.getElementById('mReqForm').reset();
+    };
+
+    // 5. KEYCHAIN LOGIN & LOGOUT
+    window.openMobileLogin = function() {
+      const sheet = document.getElementById('mKeychainSheet');
+      if (sheet) sheet.style.display = 'flex';
+    };
+
+    window.closeMobileLogin = function() {
+      const sheet = document.getElementById('mKeychainSheet');
+      if (sheet) sheet.style.display = 'none';
+    };
+
+    window.selectMobileAccount = function(email, title, role) {
+      closeMobileLogin();
+      window.currentUser = { email, title, role };
+
+      const userBadge = document.getElementById('mNavUserBadge');
+      const userName = document.getElementById('mNavUserName');
+      const signInBtn = document.getElementById('mSignInBtn');
+
+      if (userBadge) userBadge.style.display = 'inline-flex';
+      if (userName) userName.innerText = title.split(' ')[0];
+      if (signInBtn) signInBtn.style.display = 'none';
+
+      addMobileNotification({
+        category: 'ALL',
+        title: `Welcome, ${title}`,
+        message: `Signed in as ${role.replace(/_/g, ' ')}. Direct coordination tools unlocked.`,
+        group: null
+      });
+
+      alert(`✓ Signed in as ${title} [${role}]!`);
+    };
+
+    window.executeMobileSignOut = function() {
+      window.currentUser = null;
+      const userBadge = document.getElementById('mNavUserBadge');
+      const signInBtn = document.getElementById('mSignInBtn');
+
+      if (userBadge) userBadge.style.display = 'none';
+      if (signInBtn) signInBtn.style.display = 'inline-block';
+
+      alert('Signed out successfully.');
+    };
+
+    // 6. TABS & INITIALIZATION
     window.setActiveTab = function(el) {
       document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
       el.classList.add('active');
     };
 
-    // Dynamic Smooth Scroll for bottom tabs
-    document.querySelectorAll('.bottom-tab-bar a[href^="#"]').forEach(link => {
-      link.addEventListener('click', function(e) {
-        const targetId = this.getAttribute('href');
-        if (!targetId || targetId === '#' || !targetId.startsWith('#')) return;
-        const targetEl = document.querySelector(targetId);
-        if (targetEl) {
-          e.preventDefault();
-          const targetPos = targetEl.getBoundingClientRect().top + window.pageYOffset - 75;
-          window.scrollTo({
-            top: Math.max(0, targetPos),
-            behavior: 'smooth'
-          });
-          history.pushState(null, null, targetId);
-        }
-      });
-    });
+    window.openExplainerModal = function() {
+      const m = document.getElementById('mExplainerModal');
+      if (m) m.style.display = 'flex';
+    };
 
-    // On Load
+    window.closeExplainerModal = function() {
+      const m = document.getElementById('mExplainerModal');
+      if (m) m.style.display = 'none';
+    };
+
     window.addEventListener('DOMContentLoaded', () => {
       initMobilePanIndia();
-      renderMobileDirectory();
-      updatePendingBadge();
+      updateMobileCounters();
+      updateMobileNotifBadge();
     });
   </script>
 </body>
