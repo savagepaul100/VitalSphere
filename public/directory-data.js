@@ -111,3 +111,9 @@ for (let j = 1; j <= 32; j++) {
     status: j % 3 === 0 ? "ALLOCATED" : "LOOKING_FOR_DONORS"
   });
 }
+
+if (typeof window !== 'undefined') {
+  window.INDIA_STATES_DATA = INDIA_STATES_DATA;
+  window.fullDonorsList = fullDonorsList;
+  window.fullRecipientsList = fullRecipientsList;
+}

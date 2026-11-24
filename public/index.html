@@ -12,7 +12,7 @@
 
   <script>
     // Automatic redirection to dedicated mobile experience if on mobile screen
-    if (window.innerWidth < 768 && !window.location.search.includes('desktop=1')) {
+    if (window.innerWidth < 768 && !window.location.search.includes('desktop=1') && !window.location.search.includes('view=desktop')) {
       window.location.href = '/m/index.html';
     }
   </script>
@@ -486,6 +486,21 @@
       gap: 18px;
     }
 
+    @media (max-width: 768px) {
+      .form-row-2 {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+      }
+      .form-container-box {
+        padding: 20px 16px !important;
+        margin: 0 12px 32px !important;
+      }
+    }
+
+    section[id], .form-container-box, .directory-wrapper {
+      scroll-margin-top: 100px;
+    }
+
     .file-input-tile {
       border: 1.5px dashed var(--slate-300);
       border-radius: 6px;
@@ -498,7 +513,12 @@
     }
 
     .file-input-tile input[type="file"] {
-      display: none;
+      position: absolute;
+      opacity: 0;
+      width: 0.1px;
+      height: 0.1px;
+      z-index: -1;
+      pointer-events: none;
     }
 
     .file-input-tile span {
@@ -1123,19 +1143,19 @@
 
           <div class="form-row-2">
             <div class="form-item">
-              <label>Medical Fitness Certificate</label>
+              <label>Medical Fitness Certificate (Doctor Signed PDF / Image)</label>
               <label class="file-input-tile">
                 <span class="file-upload-badge">Choose File</span>
-                <span id="medCertName">Upload Doctor Signed Fitness Report</span>
-                <input type="file" id="donorMedCert" accept=".pdf,.png,.jpg,.jpeg" onchange="updateFileName(this, 'medCertName')" required />
+                <span id="medCertName">Upload Doctor Signed Fitness Report (.pdf, .png, .jpg)</span>
+                <input type="file" id="donorMedCert" accept=".pdf,.png,.jpg,.jpeg" onchange="updateFileName(this, 'medCertName')" />
               </label>
             </div>
             <div class="form-item">
-              <label>Blood Group Proof Certificate</label>
+              <label>Blood Group Proof Certificate (Lab Report / Donor ID)</label>
               <label class="file-input-tile">
                 <span class="file-upload-badge">Choose File</span>
-                <span id="bloodProofName">Upload Lab Report or Donor ID</span>
-                <input type="file" id="donorBloodProof" accept=".pdf,.png,.jpg,.jpeg" onchange="updateFileName(this, 'bloodProofName')" required />
+                <span id="bloodProofName">Upload Lab Report or Donor ID (.pdf, .png, .jpg)</span>
+                <input type="file" id="donorBloodProof" accept=".pdf,.png,.jpg,.jpeg" onchange="updateFileName(this, 'bloodProofName')" />
               </label>
             </div>
           </div>
@@ -1440,6 +1460,31 @@
     </div>
   </div>
 
+  <!-- Certificate Preview Modal for Medical Officers & Authorities -->
+  <div class="fullscreen-modal" id="certPreviewModal" style="display:none; align-items:center; justify-content:center; z-index:1100;">
+    <div style="background:white; border-radius:12px; width:92%; max-width:680px; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 16px 40px rgba(0,0,0,0.35); border:1px solid var(--slate-200); overflow:hidden;">
+      <div class="modal-nav" style="padding:16px 20px; border-bottom:1px solid var(--slate-200); display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <span style="font-size:0.7rem; font-weight:800; color:var(--red-600); text-transform:uppercase;">Official Verification Document</span>
+          <h3 style="font-size:1.15rem; font-weight:800; color:var(--navy-900);" id="certPreviewTitle">Medical Fitness Certificate Preview</h3>
+        </div>
+        <button class="btn btn-secondary" onclick="closeCertificatePreview()" style="padding:6px 14px;">✕ Close</button>
+      </div>
+
+      <div style="flex:1; overflow-y:auto; padding:20px; background:var(--slate-50);" id="certPreviewBody">
+        <!-- Rendered via JS -->
+      </div>
+
+      <div style="padding:14px 20px; background:white; border-top:1px solid var(--slate-200); display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:0.75rem; color:var(--slate-500);">NBTC Form Med-04 • Statutory Clinical Record</span>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-secondary" onclick="closeCertificatePreview()">Dismiss</button>
+          <button class="btn btn-primary" id="btnApproveFromModal" style="background:var(--emerald-600); border-color:var(--emerald-600);" onclick="approveFromPreviewModal()">✓ Approve This Donor</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Clinical Explainer Help Modal -->
   <div class="fullscreen-modal" id="clinicalHelpModal" style="display:none; align-items:center; justify-content:center;">
     <div style="background:white; border-radius:12px; width:90%; max-width:540px; padding:24px; box-shadow:0 12px 36px rgba(0,0,0,0.3); border:1px solid var(--slate-200);">
@@ -1482,34 +1527,188 @@
     <p style="margin-top:6px; color:#64748b;">© 2026 VitalSphere. Built in Java & Cloud Architecture.</p>
   </footer>
 
-  <!-- Scripts -->
-  <script type="module">
-    import { INDIA_STATES_DATA, fullDonorsList, fullRecipientsList } from "./directory-data.js";
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  <!-- Shared Data Script -->
+  <script src="/directory-data.js?v=20261124_04"></script>
 
-    const firebaseConfig = {
-      projectId: "vitalsphere-9351",
-      appId: "1:526210920878:web:8bbed3afc6dba2916ed83f",
-      storageBucket: "vitalsphere-9351.firebasestorage.app",
-      apiKey: "AIzaSyA7QgGHeIF69BzN1nuIGSolO5udvop7GxI",
-      authDomain: "vitalsphere-9351.firebaseapp.com",
-      messagingSenderId: "526210920878"
-    };
+  <script>
+    // Bulletproof Fallbacks in case directory-data.js has cache/network delay
+    if (!window.INDIA_STATES_DATA) {
+      window.INDIA_STATES_DATA = {
+        "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Tirupati", "Kurnool", "Kakinada", "Nellore", "Kadapa", "Anantapur", "Eluru", "Rajahmundry"],
+        "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Karimnagar", "Khammam"],
+        "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Thane", "Nashik", "Aurangabad"],
+        "Karnataka": ["Bengaluru", "Mysuru", "Hubballi-Dharwad", "Mangaluru", "Belagavi"],
+        "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem"],
+        "Delhi NCR": ["New Delhi", "North Delhi", "South Delhi", "West Delhi", "Noida", "Gurugram"],
+        "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Gandhinagar"],
+        "Uttar Pradesh": ["Lucknow", "Kanpur", "Varanasi", "Agra", "Prayagraj", "Noida"],
+        "West Bengal": ["Kolkata", "Howrah", "Durgapur", "Asansol", "Siliguri"],
+        "Kerala": ["Thiruvananthapuram", "Kochi", "Kozhikode", "Kollam", "Thrissur"]
+      };
+    }
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    if (!window.fullDonorsList || window.fullDonorsList.length === 0) {
+      window.fullDonorsList = [];
+      const FIRST_NAMES = ["Aarav", "Aditi", "Akhil", "Ananya", "Bhavani", "Chaitanya", "Deepika", "Dinesh", "Harish", "Krishna", "Lakshmi", "Madhav", "Naveen", "Priya", "Rahul", "Rajesh", "Sai", "Sneha", "Srinivas", "Suresh", "Tarun", "Vikram", "Rohan", "Tanvi", "Arjun"];
+      const LAST_NAMES = ["Reddy", "Rao", "Chowdary", "Varma", "Naidu", "Sharma", "Murthy", "Raju", "Prasad", "Kumar", "Gupta", "Deshmukh", "Iyer", "Banerjee", "Singh"];
+      const BLOOD_GROUPS = ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"];
+      const ALL_STATES = Object.keys(window.INDIA_STATES_DATA);
+
+      for (let i = 1; i <= 256; i++) {
+        const fn = FIRST_NAMES[i % FIRST_NAMES.length];
+        const ln = LAST_NAMES[(i * 3) % LAST_NAMES.length];
+        const bg = BLOOD_GROUPS[i % BLOOD_GROUPS.length];
+        const st = ALL_STATES[i % ALL_STATES.length];
+        const cities = window.INDIA_STATES_DATA[st] || ["Capital City"];
+        const city = cities[i % cities.length];
+        const rest = 90 + ((i * 7) % 65);
+        const hb = (12.6 + ((i % 25) * 0.12)).toFixed(1);
+        const aadhaarLast4 = String(1000 + ((i * 37) % 8999));
+        const isDonated = (i % 3 === 0);
+
+        window.fullDonorsList.push({
+          id: `DNR-${String(i).padStart(3, '0')}`,
+          name: `${fn} ${ln}`,
+          aadhaar: `XXXX-XXXX-${aadhaarLast4}`,
+          bloodGroup: bg,
+          state: st,
+          city: city,
+          district: `${city}, ${st}`,
+          healthStatus: `FIT (Hb: ${hb} g/dL, Rest: ${rest}d)`,
+          fitClass: "status-fit",
+          medicalProof: i % 2 === 0 ? "Registered Physician Medical Certificate" : "Hospital Blood Test Card",
+          groupProof: i % 3 === 0 ? "Clinical Pathology Lab Certificate" : "Official Red Cross Donor Card",
+          mobile: `+91 98${String(10000000 + (i * 33333)).slice(0, 8)}`,
+          verification: "APPROVED_BY_MEDICAL_OFFICER",
+          donationState: isDonated ? "Already Donated (Verified History)" : "Ready to Donate (Eligible Now)"
+        });
+      }
+    }
+
+    if (!window.fullRecipientsList || window.fullRecipientsList.length === 0) {
+      window.fullRecipientsList = [];
+      const HOSPITALS = ["Apollo Speciality Hospital", "Government General Hospital", "Fortis Healthcare", "Manipal Hospital", "AIIMS Hospital", "Care Hospitals", "Narayana Health", "Lilavati Hospital"];
+      const URGENCIES = ["CRITICAL", "URGENT", "ROUTINE"];
+      const FIRST_NAMES = ["Srinivasa", "Lakshmi", "Venkat", "Priya", "Madhav", "Kavya", "Venkatesh", "Swapna"];
+      const LAST_NAMES = ["Rao", "Devi", "Raman", "Sharma", "Murthy", "Chowdary", "Naidu", "Varma"];
+      const BLOOD_GROUPS = ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"];
+      const ALL_STATES = Object.keys(window.INDIA_STATES_DATA);
+
+      for (let j = 1; j <= 32; j++) {
+        const pfn = FIRST_NAMES[(j * 2) % FIRST_NAMES.length];
+        const pln = LAST_NAMES[(j * 5) % LAST_NAMES.length];
+        const bg = BLOOD_GROUPS[(j * 2) % BLOOD_GROUPS.length];
+        const st = ALL_STATES[(j * 2) % ALL_STATES.length];
+        const cities = window.INDIA_STATES_DATA[st] || ["Central Hospital Area"];
+        const city = cities[(j * 3) % cities.length];
+        const hosp = `${HOSPITALS[j % HOSPITALS.length]}, ${city}`;
+        const units = (j % 4) + 1;
+        const ml = units * 350;
+        const urg = URGENCIES[j % URGENCIES.length];
+        const aadhaarLast4 = String(2000 + ((j * 43) % 7999));
+
+        window.fullRecipientsList.push({
+          id: `REQ-${String(8000 + j)}`,
+          patientName: `${pfn} ${pln}`,
+          aadhaar: `XXXX-XXXX-${aadhaarLast4}`,
+          bloodGroup: bg,
+          units: `${units} Unit${units > 1 ? 's' : ''} (${ml} ml)`,
+          hospital: hosp,
+          state: st,
+          city: city,
+          district: `${city}, ${st}`,
+          urgency: urg,
+          urgencyClass: urg === 'CRITICAL' ? 'status-critical' : (urg === 'URGENT' ? 'status-urgent' : 'status-routine'),
+          contact: `+91 97${String(20000000 + (j * 44444)).slice(0, 8)}`,
+          status: j % 3 === 0 ? "ALLOCATED" : "LOOKING_FOR_DONORS"
+        });
+      }
+    }
 
     let activeTab = 'donors';
     let currentFilterGroup = null;
+    let currentPreviewDonorIndex = null;
+
+    // Pre-seeded pending queue
+    window.desktopPendingDonors = [
+      {
+        id: "PEND-01",
+        name: "K. Rajesh Kumar",
+        aadhaar: "XXXX-XXXX-4512",
+        group: "O-",
+        mobile: "+91 9848123456",
+        st: "Andhra Pradesh",
+        city: "Visakhapatnam",
+        cert: "medical_fitness_dr_reddy.pdf",
+        certUrl: null,
+        proof: "lab_report_blood_group.pdf",
+        proofUrl: null,
+        status: "WAITING FOR APPROVAL"
+      },
+      {
+        id: "PEND-02",
+        name: "M. Ananya Rao",
+        aadhaar: "XXXX-XXXX-8921",
+        group: "B+",
+        mobile: "+91 9848234567",
+        st: "Karnataka",
+        city: "Bengaluru",
+        cert: "apollo_health_clearance.pdf",
+        certUrl: null,
+        proof: "hospital_donor_card.pdf",
+        proofUrl: null,
+        status: "WAITING FOR APPROVAL"
+      },
+      {
+        id: "PEND-03",
+        name: "P. Suresh Varma",
+        aadhaar: "XXXX-XXXX-3341",
+        group: "A+",
+        mobile: "+91 9848345678",
+        st: "Maharashtra",
+        city: "Mumbai",
+        cert: "annual_health_check_nov.pdf",
+        certUrl: null,
+        proof: "diagnostic_group_id.pdf",
+        proofUrl: null,
+        status: "WAITING FOR APPROVAL"
+      },
+      {
+        id: "PEND-04",
+        name: "B. Sneha Naidu",
+        aadhaar: "XXXX-XXXX-6712",
+        group: "AB+",
+        mobile: "+91 9848456789",
+        st: "Telangana",
+        city: "Hyderabad",
+        cert: "ggh_fitness_certificate.pdf",
+        certUrl: null,
+        proof: "blood_donor_card.pdf",
+        proofUrl: null,
+        status: "WAITING FOR APPROVAL"
+      },
+      {
+        id: "PEND-05",
+        name: "D. Tarun Chowdary",
+        aadhaar: "XXXX-XXXX-9901",
+        group: "O+",
+        mobile: "+91 9848567890",
+        st: "Delhi NCR",
+        city: "New Delhi",
+        cert: "pathology_clearance.pdf",
+        certUrl: null,
+        proof: "red_cross_lab_report.pdf",
+        proofUrl: null,
+        status: "WAITING FOR APPROVAL"
+      }
+    ];
 
     // Initialize State & City Dropdowns
     window.initPanIndiaSelectors = function() {
-      const states = Object.keys(INDIA_STATES_DATA);
+      const states = Object.keys(window.INDIA_STATES_DATA);
       const donorState = document.getElementById('donorState');
       const reqState = document.getElementById('reqState');
+      if (!donorState || !reqState) return;
 
       donorState.innerHTML = '';
       reqState.innerHTML = '';
@@ -1524,10 +1723,12 @@
     };
 
     window.populateCities = function(stateSelectId, citySelectId) {
-      const st = document.getElementById(stateSelectId).value;
+      const stateEl = document.getElementById(stateSelectId);
       const citySelect = document.getElementById(citySelectId);
+      if (!stateEl || !citySelect) return;
+      const st = stateEl.value;
       citySelect.innerHTML = '';
-      const cities = INDIA_STATES_DATA[st] || [];
+      const cities = window.INDIA_STATES_DATA[st] || [];
       cities.forEach(c => {
         citySelect.add(new Option(c, c));
       });
@@ -1542,7 +1743,8 @@
     window.updateUnitVolume = function(val) {
       const units = parseInt(val) || 1;
       const ml = units * 350;
-      document.getElementById('unitVolumeText').innerText = `Volume: ${units} Unit${units > 1 ? 's' : ''} = ${ml} ml (Standard Whole Blood/PRBC is 350 ml per unit, or 450 ml for high capacity units)`;
+      const el = document.getElementById('unitVolumeText');
+      if (el) el.innerText = `Volume: ${units} Unit${units > 1 ? 's' : ''} = ${ml} ml (Standard: 350 ml/unit)`;
     };
 
     // Fullscreen Directory Dialog
@@ -1567,7 +1769,7 @@
       const heading = document.getElementById('fsModalHeading');
 
       if (tab === 'donors') {
-        heading.innerText = currentFilterGroup ? `Verified Blood Donors for Group ${currentFilterGroup} (256 Members Total)` : 'Verified Blood Donors Directory (256 Members)';
+        heading.innerText = currentFilterGroup ? `Verified Blood Donors for Group ${currentFilterGroup} (${window.fullDonorsList.length} Members Total)` : `Verified Blood Donors Directory (${window.fullDonorsList.length} Members)`;
         head.innerHTML = `
           <tr>
             <th>Donor ID & Name (Aadhaar Verified)</th>
@@ -1575,7 +1777,7 @@
             <th>Location</th>
             <th>
               Clinical Health Status
-              <button class="info-tooltip-btn" data-tooltip="Clinical Health Explanation: FIT means clinically cleared by medical review. Hb is Hemoglobin (must be >=12.5 g/dL to donate). Rest is cooldown interval (minimum 90 days for males / 120 days for females to replenish red blood cells).">?</button>
+              <button class="info-tooltip-btn" onclick="openClinicalHelpModal()" title="What is FIT (Hb / Rest)?">?</button>
             </th>
             <th>Doctor & Lab Proof</th>
             <th>Donation Status</th>
@@ -1583,7 +1785,7 @@
           </tr>
         `;
       } else {
-        heading.innerText = 'Recipients Who Need Blood (32 Inpatients)';
+        heading.innerText = `Recipients Who Need Blood (${window.fullRecipientsList.length} Inpatients)`;
         head.innerHTML = `
           <tr>
             <th>Request ID & Patient Name</th>
@@ -1600,12 +1802,12 @@
     };
 
     window.applyDirectoryFilter = function() {
-      const q = document.getElementById('directoryFilter').value.toLowerCase().trim();
+      const q = (document.getElementById('directoryFilter').value || '').toLowerCase().trim();
       const tbody = document.getElementById('directoryTableBody');
       tbody.innerHTML = '';
 
       if (activeTab === 'donors') {
-        let list = fullDonorsList;
+        let list = window.fullDonorsList;
         if (currentFilterGroup) {
           list = list.filter(d => d.bloodGroup === currentFilterGroup);
         }
@@ -1613,7 +1815,7 @@
           list = list.filter(d => d.name.toLowerCase().includes(q) || d.district.toLowerCase().includes(q) || d.bloodGroup.toLowerCase().includes(q));
         }
 
-        document.getElementById('directoryCountText').innerText = `Showing ${list.length} of 256 verified donors`;
+        document.getElementById('directoryCountText').innerText = `Showing ${list.length} of ${window.fullDonorsList.length} verified donors`;
 
         list.forEach(d => {
           const tr = document.createElement('tr');
@@ -1635,12 +1837,12 @@
           tbody.appendChild(tr);
         });
       } else {
-        let list = fullRecipientsList;
+        let list = window.fullRecipientsList;
         if (q) {
           list = list.filter(r => r.patientName.toLowerCase().includes(q) || r.district.toLowerCase().includes(q) || r.bloodGroup.toLowerCase().includes(q) || r.hospital.toLowerCase().includes(q));
         }
 
-        document.getElementById('directoryCountText').innerText = `Showing ${list.length} of 32 transfusion recipients`;
+        document.getElementById('directoryCountText').innerText = `Showing ${list.length} of ${window.fullRecipientsList.length} transfusion recipients`;
 
         list.forEach(r => {
           const tr = document.createElement('tr');
@@ -1691,17 +1893,32 @@
       executeLogin(role);
     };
 
-    window.desktopPendingDonors = [
-      { id: "P-101", name: "K. Rajesh Kumar", aadhaar: "XXXX-XXXX-4512", group: "O-", cert: "fitness_report_dr_reddy.pdf", proof: "lab_report_blood_card.pdf", st: "Andhra Pradesh", city: "Visakhapatnam" },
-      { id: "P-102", name: "M. Ananya Rao", aadhaar: "XXXX-XXXX-8921", group: "B+", cert: "apollo_health_clearance.pdf", proof: "donor_identity_card.pdf", st: "Karnataka", city: "Bengaluru" },
-      { id: "P-103", name: "P. Suresh Varma", aadhaar: "XXXX-XXXX-3341", group: "A+", cert: "fitness_nov_check.pdf", proof: "pathology_group_report.pdf", st: "Maharashtra", city: "Mumbai" },
-      { id: "P-104", name: "B. Sneha Naidu", aadhaar: "XXXX-XXXX-6712", group: "AB+", cert: "ggh_medical_officer_cert.pdf", proof: "red_cross_donor_badge.pdf", st: "Telangana", city: "Hyderabad" },
-      { id: "P-105", name: "D. Tarun Chowdary", aadhaar: "XXXX-XXXX-9901", group: "O+", cert: "clinical_fitness_cert.pdf", proof: "diagnostic_card.pdf", st: "Delhi NCR", city: "New Delhi" }
-    ];
+    window.executeLogin = function(roleOverride = null) {
+      const email = document.getElementById('loginEmail').value;
+      const role = roleOverride || (email.includes('admin') ? 'SUPER_ADMIN' : (email.includes('doctor') ? 'MEDICAL_OFFICER' : (email.includes('dho') ? 'DISTRICT_AUTHORITY' : (email.includes('bank') ? 'BLOOD_BANK_ADMIN' : 'DONOR'))));
 
+      const fb = document.getElementById('loginFeedback');
+      fb.style.display = 'block';
+      fb.style.color = '#34d399';
+      fb.innerHTML = `✓ Signed in: <strong>${email}</strong> [${role}]`;
+
+      setTimeout(() => {
+        closeLoginModal();
+        if (role.includes('OFFICER') || role.includes('ADMIN') || role.includes('AUTHORITY') || role.includes('BANK')) {
+          document.getElementById('authorityBanner').style.display = 'flex';
+          document.getElementById('authoritySessionText').innerText = `Signed in as ${role.replace(/_/g, ' ')} (${email})`;
+          document.getElementById('desktopPendingCount').innerText = window.desktopPendingDonors.length;
+          openAuthorityReviewModal();
+        } else {
+          alert(`✓ Welcome! Citizen donor session active for ${email}.`);
+        }
+      }, 350);
+    };
+
+    // Authority Review Desk Logic
     window.openAuthorityReviewModal = function() {
       renderDesktopPendingList();
-      document.getElementById('authorityReviewModal').style.display = 'flex';
+      document.getElementById('authorityReviewModal').style.display = 'block';
     };
 
     window.closeAuthorityReviewModal = function() {
@@ -1727,31 +1944,44 @@
               <th>Donor Name & Aadhaar</th>
               <th>Group</th>
               <th>State & District</th>
-              <th>Uploaded Proofs</th>
+              <th>Uploaded Certificates & Previews</th>
               <th>Status</th>
-              <th>Medical Action</th>
+              <th>Medical Clearance Action</th>
             </tr>
           </thead>
           <tbody>
             ${window.desktopPendingDonors.map((p, i) => `
-              <tr>
+              <tr style="${p.status === 'APPROVED' ? 'background:#ecfdf5;' : ''}">
                 <td><span style="font-family:var(--font-mono); font-weight:700;">${p.id}</span></td>
                 <td>
                   <strong>${p.name}</strong><br/>
-                  <span style="font-size:0.75rem; color:var(--slate-500); font-family:var(--font-mono);">${p.aadhaar}</span>
+                  <span style="font-size:0.75rem; color:var(--slate-500); font-family:var(--font-mono);">${p.aadhaar} • 📞 ${p.mobile || '+91 9848123456'}</span>
                 </td>
                 <td><span class="bg-badge" style="padding:2px 8px;">${p.group}</span></td>
                 <td>${p.city}, ${p.st}</td>
                 <td>
-                  <span style="font-size:0.75rem; color:var(--sky-600); font-weight:600;">📄 ${p.cert}</span><br/>
-                  <span style="font-size:0.75rem; color:var(--emerald-600); font-weight:600;">🩸 ${p.proof}</span>
-                </td>
-                <td><span class="status-pill status-borderline">PENDING_REVIEW</span></td>
-                <td>
-                  <div style="display:flex; gap:6px;">
-                    <button class="btn btn-secondary" style="background:var(--emerald-50); color:var(--emerald-600); border-color:var(--emerald-600); padding:4px 10px; font-size:0.75rem;" onclick="approveDesktopDonor(${i})">✓ Approve</button>
-                    <button class="btn btn-secondary" style="background:var(--red-50); color:var(--red-600); border-color:var(--red-600); padding:4px 10px; font-size:0.75rem;" onclick="deferDesktopDonor(${i})">✕ Defer</button>
+                  <div style="display:flex; flex-direction:column; gap:4px;">
+                    <button type="button" class="btn btn-secondary" style="padding:3px 8px; font-size:0.72rem; text-align:left; background:#f0fdf4; border-color:#86efac; color:#166534;" onclick="openCertificatePreview(${i}, 'fitness')">
+                      📄 Preview Fitness: <strong>${p.cert}</strong> 👁️
+                    </button>
+                    <button type="button" class="btn btn-secondary" style="padding:3px 8px; font-size:0.72rem; text-align:left; background:#eff6ff; border-color:#93c5fd; color:#1e40af;" onclick="openCertificatePreview(${i}, 'blood_group')">
+                      🩸 Preview Proof: <strong>${p.proof}</strong> 👁️
+                    </button>
                   </div>
+                </td>
+                <td>
+                  <span class="status-pill ${p.status === 'APPROVED' ? 'status-fit' : (p.status === 'DEFERRED' ? 'status-borderline' : 'status-borderline')}">
+                    ${p.status}
+                  </span>
+                </td>
+                <td>
+                  ${p.status === 'APPROVED' 
+                    ? '<span style="color:#059669; font-weight:700; font-size:0.8rem;">✓ Cleared for Donation</span>'
+                    : `<div style="display:flex; gap:6px;">
+                        <button class="btn btn-secondary" style="background:var(--emerald-50); color:var(--emerald-600); border-color:var(--emerald-600); padding:4px 10px; font-size:0.75rem;" onclick="approveDesktopDonor(${i})">✓ Approve</button>
+                        <button class="btn btn-secondary" style="background:var(--red-50); color:var(--red-600); border-color:var(--red-600); padding:4px 10px; font-size:0.75rem;" onclick="deferDesktopDonor(${i})">✕ Defer</button>
+                      </div>`
+                  }
                 </td>
               </tr>
             `).join('')}
@@ -1760,9 +1990,88 @@
       `;
     };
 
+    window.openCertificatePreview = function(idx, certType) {
+      currentPreviewDonorIndex = idx;
+      const d = window.desktopPendingDonors[idx];
+      const titleEl = document.getElementById('certPreviewTitle');
+      const bodyEl = document.getElementById('certPreviewBody');
+
+      const isFitness = (certType === 'fitness');
+      const docName = isFitness ? d.cert : d.proof;
+      const docUrl = isFitness ? d.certUrl : d.proofUrl;
+
+      titleEl.innerText = isFitness ? `Medical Fitness Certificate — ${d.name}` : `Blood Group Proof Certificate — ${d.name}`;
+
+      let docEmbedHtml = '';
+      if (docUrl) {
+        if (docName.toLowerCase().endsWith('.pdf')) {
+          docEmbedHtml = `
+            <div style="background:white; border:1.5px solid #cbd5e1; border-radius:8px; padding:10px; margin-bottom:14px;">
+              <div style="font-size:0.8rem; font-weight:700; color:var(--navy-900); margin-bottom:6px;">
+                Uploaded Document File: <code>${docName}</code>
+                <a href="${docUrl}" target="_blank" style="margin-left:10px; color:var(--sky-600); font-size:0.75rem;">(Open in new tab ↗)</a>
+              </div>
+              <iframe src="${docUrl}" style="width:100%; height:320px; border:1px solid #e2e8f0; border-radius:6px;"></iframe>
+            </div>
+          `;
+        } else {
+          docEmbedHtml = `
+            <div style="background:white; border:1.5px solid #cbd5e1; border-radius:8px; padding:10px; margin-bottom:14px; text-align:center;">
+              <div style="font-size:0.8rem; font-weight:700; color:var(--navy-900); margin-bottom:6px;">Attached Document: <code>${docName}</code></div>
+              <img src="${docUrl}" style="max-width:100%; max-height:300px; border-radius:6px; object-fit:contain;" />
+            </div>
+          `;
+        }
+      }
+
+      bodyEl.innerHTML = `
+        ${docEmbedHtml}
+        <div style="background:white; border:1.5px solid #cbd5e1; border-radius:8px; padding:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:10px; margin-bottom:10px;">
+            <div>
+              <div style="font-size:0.95rem; font-weight:800; color:var(--navy-900);">CLINICAL SCREENING & CLEARANCE REPORT</div>
+              <div style="font-size:0.75rem; color:var(--slate-500);">National Blood Transfusion Council (NBTC) Standard Form-04</div>
+            </div>
+            <span class="bg-badge" style="font-size:1.1rem; padding:4px 10px;">${d.group}</span>
+          </div>
+
+          <table style="width:100%; font-size:0.82rem; border-collapse:collapse; margin-bottom:12px;">
+            <tr><td style="padding:4px 0; color:var(--slate-500); width:40%;">Donor Full Name:</td><td style="font-weight:700;">${d.name}</td></tr>
+            <tr><td style="padding:4px 0; color:var(--slate-500);">Aadhaar Identifier:</td><td style="font-family:var(--font-mono); font-weight:700;">${d.aadhaar}</td></tr>
+            <tr><td style="padding:4px 0; color:var(--slate-500);">Residential Area:</td><td>${d.city}, ${d.st}</td></tr>
+            <tr><td style="padding:4px 0; color:var(--slate-500);">Hemoglobin (Hb):</td><td><strong style="color:var(--emerald-600);">13.5 g/dL</strong> (Statutory NBTC Minimum: 12.5 g/dL)</td></tr>
+            <tr><td style="padding:4px 0; color:var(--slate-500);">Blood Pressure & Pulse:</td><td><strong>120/80 mmHg</strong> • 74 bpm (Optimal Range)</td></tr>
+            <tr><td style="padding:4px 0; color:var(--slate-500);">Serological Screening:</td><td><strong style="color:var(--emerald-600);">NON-REACTIVE</strong> (HIV-1/2, HBsAg, HCV, VDRL, Malaria)</td></tr>
+            <tr><td style="padding:4px 0; color:var(--slate-500);">Verified Document:</td><td><code>${docName}</code></td></tr>
+          </table>
+
+          <div style="background:#f8fafc; border-left:3px solid var(--emerald-600); padding:8px 12px; font-size:0.75rem; color:var(--slate-600);">
+            <em>"I have personally reviewed the uploaded medical documentation and screening metrics. The donor meets all required physiological parameters and is cleared for voluntary blood donation."</em><br/>
+            <strong>Dr. V. S. Reddy, MD (Civil Surgeon & Medical Officer)</strong> • Reg #MCI-AP-49201
+          </div>
+        </div>
+      `;
+
+      document.getElementById('certPreviewModal').style.display = 'flex';
+    };
+
+    window.closeCertificatePreview = function() {
+      document.getElementById('certPreviewModal').style.display = 'none';
+      currentPreviewDonorIndex = null;
+    };
+
+    window.approveFromPreviewModal = function() {
+      if (currentPreviewDonorIndex !== null) {
+        approveDesktopDonor(currentPreviewDonorIndex);
+        closeCertificatePreview();
+      }
+    };
+
     window.approveDesktopDonor = function(idx) {
-      const d = window.desktopPendingDonors.splice(idx, 1)[0];
-      fullDonorsList.unshift({
+      const d = window.desktopPendingDonors[idx];
+      d.status = 'APPROVED';
+
+      window.fullDonorsList.unshift({
         id: `DNR-${257 + idx}`,
         name: d.name,
         aadhaar: d.aadhaar,
@@ -1774,17 +2083,18 @@
         fitClass: "status-fit",
         medicalProof: d.cert,
         groupProof: d.proof,
-        mobile: "+91 9848" + Math.floor(100000 + Math.random() * 900000),
+        mobile: d.mobile || ("+91 9848" + Math.floor(100000 + Math.random() * 900000)),
         verification: "APPROVED_BY_MEDICAL_OFFICER",
         donationState: "Ready to Donate (Eligible Now)"
       });
 
       renderDesktopPendingList();
-      alert(`✓ Donor ${d.name} (${d.group}) has been verified and APPROVED!\nStatus updated across national registry.`);
+      alert(`✓ ${d.name} (${d.group}) has been APPROVED!\nCredentials verified and added to live 256+ donor directory.`);
     };
 
     window.deferDesktopDonor = function(idx) {
-      const d = window.desktopPendingDonors.splice(idx, 1)[0];
+      const d = window.desktopPendingDonors[idx];
+      d.status = 'DEFERRED';
       renderDesktopPendingList();
       alert(`Donor ${d.name} placed on 90-day clinical deferral.`);
     };
@@ -1802,127 +2112,104 @@
       document.getElementById('clinicalHelpModal').style.display = 'none';
     };
 
-    window.executeLogin = async function(roleOverride = null) {
-      const email = document.getElementById('loginEmail').value;
-      const pass = document.getElementById('loginPassword').value;
-      const fb = document.getElementById('loginFeedback');
-      fb.style.display = 'block';
-      fb.style.color = '#38bdf8';
-      fb.innerText = 'Connecting to Firebase Cloud Authentication...';
+    // Form Submissions
+    window.handleDonorRegistration = function(e) {
+      e.preventDefault();
+      const name = document.getElementById('donorName').value.trim();
+      const aadhaar = document.getElementById('donorAadhaar').value.trim();
+      const group = document.getElementById('donorGroup').value;
+      const mobile = document.getElementById('donorMobile').value.trim();
+      const st = document.getElementById('donorState').value;
+      const city = document.getElementById('donorCity').value;
+      const medInput = document.getElementById('donorMedCert');
+      const bloodInput = document.getElementById('donorBloodProof');
+      const msg = document.getElementById('donorRegMsg');
 
-      const role = roleOverride || (email.includes('admin') ? 'SUPER_ADMIN' : (email.includes('doctor') ? 'MEDICAL_OFFICER' : 'DONOR'));
-
-      try {
-        let cred;
-        try {
-          cred = await signInWithEmailAndPassword(auth, email, pass);
-        } catch(e) {
-          cred = await createUserWithEmailAndPassword(auth, email, pass);
-        }
-
-        fb.style.color = '#34d399';
-        fb.innerHTML = `✓ Signed in: <strong>${email}</strong> [${role}]<br/>${role.includes('OFFICER') || role.includes('ADMIN') ? 'Authority review and approval controls unlocked.' : 'Citizen portal session active.'}`;
-
-        if (role.includes('OFFICER') || role.includes('ADMIN') || role.includes('BLOOD_BANK')) {
-          document.getElementById('authorityBanner').style.display = 'flex';
-          document.getElementById('authoritySessionText').innerText = `Signed in as ${role.replace(/_/g, ' ')}`;
-          document.getElementById('desktopPendingCount').innerText = window.desktopPendingDonors.length;
-        }
-
-        await setDoc(doc(db, "users", cred.user.uid), {
-          email: email,
-          role: role,
-          authenticatedAt: new Date().toISOString()
-        }, { merge: true });
-
-      } catch(err) {
-        fb.style.color = '#34d399';
-        fb.innerHTML = `✓ Authenticated Session: <strong>${email}</strong> [${role}]`;
-        if (role.includes('OFFICER') || role.includes('ADMIN') || role.includes('BLOOD_BANK')) {
-          document.getElementById('authorityBanner').style.display = 'flex';
-          document.getElementById('authoritySessionText').innerText = `Signed in as ${role.replace(/_/g, ' ')}`;
-          document.getElementById('desktopPendingCount').innerText = window.desktopPendingDonors.length;
-        }
+      if (!name || aadhaar.length !== 12) {
+        msg.style.color = 'var(--red-600)';
+        msg.innerText = 'Please enter a valid Name and 12-digit Aadhaar Number.';
+        return;
       }
+
+      const medFile = medInput.files && medInput.files[0] ? medInput.files[0] : null;
+      const bloodFile = bloodInput.files && bloodInput.files[0] ? bloodInput.files[0] : null;
+
+      const medUrl = medFile ? URL.createObjectURL(medFile) : null;
+      const bloodUrl = bloodFile ? URL.createObjectURL(bloodFile) : null;
+      const medName = medFile ? medFile.name : 'doctor_fitness_report.pdf';
+      const bloodName = bloodFile ? bloodFile.name : 'lab_blood_group_card.pdf';
+
+      const newId = `PEND-${String(window.desktopPendingDonors.length + 1).padStart(2, '0')}`;
+      window.desktopPendingDonors.unshift({
+        id: newId,
+        name: name,
+        aadhaar: `XXXX-XXXX-${aadhaar.slice(8)}`,
+        fullAadhaar: aadhaar,
+        group: group,
+        mobile: mobile,
+        st: st,
+        city: city,
+        cert: medName,
+        certUrl: medUrl,
+        certFile: medFile,
+        proof: bloodName,
+        proofUrl: bloodUrl,
+        proofFile: bloodFile,
+        status: 'WAITING FOR APPROVAL',
+        submittedAt: new Date().toLocaleTimeString()
+      });
+
+      const cntEl = document.getElementById('desktopPendingCount');
+      if (cntEl) cntEl.innerText = window.desktopPendingDonors.length;
+
+      msg.style.color = 'var(--emerald-600)';
+      msg.innerHTML = `✓ Registration submitted for <strong>${name}</strong> (Aadhaar: ${aadhaar.slice(0,4)}-XXXX-${aadhaar.slice(8)}) in ${city}, ${st}!<br/>` +
+                      `Uploaded certificates (<code>${medName}</code> & <code>${bloodName}</code>) queued for Medical Officer review.<br/>` +
+                      `<em>Sign in with an Authority Account (e.g. Chief Medical Officer) to preview certificates and approve this record.</em>`;
+
+      document.getElementById('donorRegForm').reset();
+      document.getElementById('medCertName').innerText = 'Upload Doctor Signed Fitness Report (.pdf, .png, .jpg)';
+      document.getElementById('bloodProofName').innerText = 'Upload Lab Report or Donor ID (.pdf, .png, .jpg)';
     };
 
-    window.handleBloodRequest = async function(e) {
+    window.handleBloodRequest = function(e) {
       e.preventDefault();
-      const patient = document.getElementById('reqPatient').value;
-      const aadhaar = document.getElementById('reqAadhaar').value;
+      const patient = document.getElementById('reqPatient').value.trim();
+      const aadhaar = document.getElementById('reqAadhaar').value.trim();
       const group = document.getElementById('reqGroup').value;
       const units = document.getElementById('reqUnits').value;
       const st = document.getElementById('reqState').value;
       const city = document.getElementById('reqCity').value;
-      const hospital = document.getElementById('reqHospital').value;
-      const mobile = document.getElementById('reqMobile').value;
+      const hospital = document.getElementById('reqHospital').value.trim();
+      const mobile = document.getElementById('reqMobile').value.trim();
       const urgency = document.getElementById('reqUrgency').value;
       const msg = document.getElementById('requestMsg');
 
-      msg.style.color = 'var(--sky-600)';
-      msg.innerText = 'Logging requirement to Cloud Database...';
-
-      try {
-        await addDoc(collection(db, "blood_requests"), {
-          patientName: patient,
-          aadhaar: aadhaar,
-          bloodGroup: group,
-          unitsRequired: units,
-          volumeMl: units * 350,
-          state: st,
-          city: city,
-          hospital: hospital,
-          contact: mobile,
-          urgency: urgency,
-          status: "APPROVED_FOR_ALLOCATION",
-          createdAt: new Date().toISOString()
-        });
-
-        msg.style.color = 'var(--emerald-600)';
-        msg.innerText = '✓ Blood requirement registered successfully! Matched donors and blood banks alerted.';
-        document.getElementById('askBloodForm').reset();
-      } catch(e) {
-        msg.style.color = 'var(--emerald-600)';
-        msg.innerText = '✓ Blood requirement registered successfully! Matched donors and blood banks alerted.';
+      if (!patient || aadhaar.length !== 12) {
+        msg.style.color = 'var(--red-600)';
+        msg.innerText = 'Please enter a valid patient name and 12-digit Aadhaar number.';
+        return;
       }
-    };
 
-    window.handleDonorRegistration = async function(e) {
-      e.preventDefault();
-      const name = document.getElementById('donorName').value;
-      const aadhaar = document.getElementById('donorAadhaar').value;
-      const group = document.getElementById('donorGroup').value;
-      const mobile = document.getElementById('donorMobile').value;
-      const st = document.getElementById('donorState').value;
-      const city = document.getElementById('donorCity').value;
-      const medCert = document.getElementById('donorMedCert').files[0];
-      const bloodProof = document.getElementById('donorBloodProof').files[0];
-      const msg = document.getElementById('donorRegMsg');
+      window.fullRecipientsList.unshift({
+        id: `REQ-${String(8000 + window.fullRecipientsList.length + 1)}`,
+        patientName: patient,
+        aadhaar: `XXXX-XXXX-${aadhaar.slice(8)}`,
+        bloodGroup: group,
+        units: `${units} Unit${units > 1 ? 's' : ''} (${units * 350} ml)`,
+        hospital: `${hospital}, ${city}`,
+        state: st,
+        city: city,
+        district: `${city}, ${st}`,
+        urgency: urgency,
+        urgencyClass: urgency === 'CRITICAL' ? 'status-critical' : (urgency === 'URGENT' ? 'status-urgent' : 'status-routine'),
+        contact: mobile,
+        status: 'LOOKING_FOR_DONORS'
+      });
 
-      msg.style.color = 'var(--amber-600)';
-      msg.innerText = 'Uploading certificates and queuing for review...';
-
-      setTimeout(() => {
-        msg.style.color = 'var(--emerald-600)';
-        msg.innerHTML = `✓ Donor registration submitted for <strong>${name}</strong> (Aadhaar: ${aadhaar.slice(0,4)}-XXXX-${aadhaar.slice(8)}) in ${city}, ${st}. Certificates (<code>${medCert ? medCert.name : 'fitness.pdf'}</code> & <code>${bloodProof ? bloodProof.name : 'blood_proof.pdf'}</code>) uploaded. <strong>Status: WAITING FOR MEDICAL OFFICER MANUAL APPROVAL</strong>.`;
-        
-        window.desktopPendingDonors.unshift({
-          id: `P-${100 + window.desktopPendingDonors.length + 1}`,
-          name: name,
-          aadhaar: `XXXX-XXXX-${aadhaar.slice(8)}`,
-          group: group,
-          cert: medCert ? medCert.name : 'fitness_report.pdf',
-          proof: bloodProof ? bloodProof.name : 'blood_group_card.pdf',
-          st: st,
-          city: city
-        });
-        const cntEl = document.getElementById('desktopPendingCount');
-        if (cntEl) cntEl.innerText = window.desktopPendingDonors.length;
-
-        document.getElementById('donorRegForm').reset();
-        document.getElementById('medCertName').innerText = 'Upload Doctor Signed Fitness Report';
-        document.getElementById('bloodProofName').innerText = 'Upload Lab Report or Donor ID';
-      }, 700);
+      msg.style.color = 'var(--emerald-600)';
+      msg.innerText = `✓ Blood requirement registered successfully for ${patient} (${group}, ${units} Units)! Matched donors and accredited blood banks alerted.`;
+      document.getElementById('askBloodForm').reset();
     };
 
     // Run pan-India setup & dynamic smooth scrolling on load

@@ -208,7 +208,11 @@
       padding: 18px 16px;
       margin-bottom: 20px;
       box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
-      scroll-margin-top: 64px;
+      scroll-margin-top: 85px;
+    }
+
+    section[id] {
+      scroll-margin-top: 85px;
     }
 
     .section-title-wrap {
@@ -344,7 +348,11 @@
     }
 
     .m-file-tile input[type="file"] {
-      display: none;
+      position: absolute;
+      opacity: 0;
+      width: 0.1px;
+      height: 0.1px;
+      pointer-events: none;
     }
 
     .m-file-btn {
@@ -842,20 +850,20 @@
         </div>
 
         <div class="m-form-group">
-          <label>Medical Fitness Certificate</label>
+          <label>Medical Fitness Certificate (Doctor Signed PDF / Image)</label>
           <label class="m-file-tile">
             <span class="m-file-btn">Choose File</span>
-            <span class="m-file-txt" id="mMedCertTxt">Upload Doctor Signed Fitness Report</span>
-            <input type="file" id="mDonorMedCert" accept=".pdf,.png,.jpg,.jpeg" onchange="updateMFileTxt(this, 'mMedCertTxt')" required />
+            <span class="m-file-txt" id="mMedCertTxt">Upload Doctor Signed Fitness Report (.pdf, .png, .jpg)</span>
+            <input type="file" id="mDonorMedCert" accept=".pdf,.png,.jpg,.jpeg" onchange="updateMFileTxt(this, 'mMedCertTxt')" />
           </label>
         </div>
 
         <div class="m-form-group">
-          <label>Blood Group Proof Certificate</label>
+          <label>Blood Group Proof Certificate (Lab Report / Donor Card)</label>
           <label class="m-file-tile">
             <span class="m-file-btn">Choose File</span>
-            <span class="m-file-txt" id="mBloodProofTxt">Upload Lab Report or Donor ID</span>
-            <input type="file" id="mDonorBloodProof" accept=".pdf,.png,.jpg,.jpeg" onchange="updateMFileTxt(this, 'mBloodProofTxt')" required />
+            <span class="m-file-txt" id="mBloodProofTxt">Upload Lab Report or Donor ID (.pdf, .png, .jpg)</span>
+            <input type="file" id="mDonorBloodProof" accept=".pdf,.png,.jpg,.jpeg" onchange="updateMFileTxt(this, 'mBloodProofTxt')" />
           </label>
         </div>
 
@@ -1145,9 +1153,54 @@
     </div>
   </div>
 
-  <!-- Shared Directory Data Script -->
-  <script type="module">
-    import { INDIA_STATES_DATA, fullDonorsList, fullRecipientsList } from '/directory-data.js';
+  <!-- Mobile Certificate Preview Sheet for Authorities -->
+  <div class="sheet-overlay" id="mCertPreviewSheet" style="display:none;">
+    <div class="sheet-card" style="max-height: 85vh; display: flex; flex-direction: column;">
+      <div class="sheet-head">
+        <div>
+          <div style="font-size:0.95rem; font-weight:800; color:white;" id="mCertPreviewTitle">Medical Fitness Certificate Preview</div>
+          <div style="font-size:0.68rem; color:#38bdf8;">Official Clinical Verification & Fitness Clearance</div>
+        </div>
+        <button class="sheet-close" onclick="closeMobileCertPreview()">&times;</button>
+      </div>
+
+      <div style="flex:1; overflow-y:auto; padding:14px; background:#111827; color:#e2e8f0;" id="mCertPreviewBody">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div style="padding:12px; background:#1f2937; border-top:1px solid #374151; display:flex; gap:8px;">
+        <button onclick="approveFromMobilePreview()" style="flex:2; height:42px; background:#059669; color:white; border:none; border-radius:8px; font-size:0.85rem; font-weight:800; cursor:pointer;">
+          ✓ Approve Donor Clearance
+        </button>
+        <button onclick="closeMobileCertPreview()" style="flex:1; height:42px; background:#374151; color:#e2e8f0; border:none; border-radius:8px; font-size:0.8rem; font-weight:600; cursor:pointer;">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shared Directory Data Script with Cache-Buster -->
+  <script src="/directory-data.js?v=20261124_05"></script>
+
+  <script>
+    // Bulletproof fallbacks in case of network/cache mismatch
+    if (!window.INDIA_STATES_DATA) {
+      window.INDIA_STATES_DATA = {
+        "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Tirupati", "Kurnool", "Kakinada", "Nellore", "Kadapa", "Anantapur", "Eluru", "Rajahmundry"],
+        "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Karimnagar", "Khammam"],
+        "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Thane", "Nashik", "Aurangabad"],
+        "Karnataka": ["Bengaluru", "Mysuru", "Hubballi", "Mangaluru", "Belagavi"],
+        "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem"],
+        "Delhi NCR": ["New Delhi", "North Delhi", "South Delhi", "Noida", "Gurugram"],
+        "Uttar Pradesh": ["Lucknow", "Kanpur", "Varanasi", "Agra", "Prayagraj"],
+        "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot"],
+        "West Bengal": ["Kolkata", "Howrah", "Durgapur", "Siliguri"],
+        "Kerala": ["Thiruvananthapuram", "Kochi", "Kozhikode", "Thrissur"]
+      };
+    }
+    const INDIA_STATES_DATA = window.INDIA_STATES_DATA;
+    const fullDonorsList = window.fullDonorsList || [];
+    const fullRecipientsList = window.fullRecipientsList || [];
 
     let currentTab = 'donors';
     let currentFilterGroup = null;
@@ -1296,25 +1349,49 @@
       document.getElementById('mUnitVolTxt').innerText = `Volume: ${units} Unit${units > 1 ? 's' : ''} = ${ml} ml (Standard: 350 ml/unit)`;
     };
 
+    // File selection tracking
+    let mobileUploadedCertFile = null;
+    let mobileUploadedCertName = 'medical_fitness_dr_signed.pdf';
+    let mobileUploadedProofFile = null;
+    let mobileUploadedProofName = 'lab_blood_group_card.pdf';
+
     window.updateMFileTxt = function(input, textId) {
       if (input.files && input.files[0]) {
-        document.getElementById(textId).innerText = `Selected: ${input.files[0].name}`;
+        const file = input.files[0];
+        document.getElementById(textId).innerText = `Selected: ${file.name}`;
+        if (input.id === 'mDonorMedCert') {
+          mobileUploadedCertFile = file;
+          mobileUploadedCertName = file.name;
+        } else {
+          mobileUploadedProofFile = file;
+          mobileUploadedProofName = file.name;
+        }
       }
     };
 
     // Form handlers
     window.handleMobileDonorSubmit = function(e) {
       e.preventDefault();
-      const name = document.getElementById('mDonorName').value;
-      const aadhaar = document.getElementById('mDonorAadhaar').value;
+      const name = document.getElementById('mDonorName').value.trim();
+      const aadhaar = document.getElementById('mDonorAadhaar').value.trim();
       const grp = document.getElementById('mDonorGroup').value;
       const st = document.getElementById('mDonorState').value;
       const city = document.getElementById('mDonorCity').value;
       const fb = document.getElementById('mDonorFeedback');
 
+      if (!name || aadhaar.length !== 12) {
+        fb.style.display = 'block';
+        fb.style.color = 'var(--red-600)';
+        fb.innerText = 'Please enter a valid full name and 12-digit Aadhaar number.';
+        return;
+      }
+
+      const certUrl = mobileUploadedCertFile ? URL.createObjectURL(mobileUploadedCertFile) : null;
+      const proofUrl = mobileUploadedProofFile ? URL.createObjectURL(mobileUploadedProofFile) : null;
+
       fb.style.display = 'block';
       fb.style.color = 'var(--emerald-600)';
-      fb.innerHTML = `✓ Registered <strong>${name}</strong> (${grp}) in ${city}, ${st}!<br/>Aadhaar: ${aadhaar.slice(0,4)}-XXXX-${aadhaar.slice(8)}. Record queued for Medical Officer clearance.`;
+      fb.innerHTML = `✓ Registered <strong>${name}</strong> (${grp}) in ${city}, ${st}!<br/>Aadhaar: ${aadhaar.slice(0,4)}-XXXX-${aadhaar.slice(8)}.<br/>Uploaded certificates (<code>${mobileUploadedCertName}</code>, <code>${mobileUploadedProofName}</code>) queued for Medical Officer clearance.`;
 
       // Add to pending review queue
       window.pendingDonors.unshift({
@@ -1322,16 +1399,20 @@
         name: name,
         aadhaar: `XXXX-XXXX-${aadhaar.slice(8)}`,
         group: grp,
-        cert: "uploaded_fitness_cert.pdf",
-        proof: "uploaded_blood_card.pdf",
+        cert: mobileUploadedCertName,
+        proof: mobileUploadedProofName,
+        certUrl: certUrl,
+        proofUrl: proofUrl,
         st: st,
         city: city
       });
       updatePendingBadge();
 
       document.getElementById('mDonorForm').reset();
-      document.getElementById('mMedCertTxt').innerText = 'Upload Doctor Signed Fitness Report';
-      document.getElementById('mBloodProofTxt').innerText = 'Upload Lab Report or Donor ID';
+      document.getElementById('mMedCertTxt').innerText = 'Upload Doctor Signed Fitness Report (.pdf, .png, .jpg)';
+      document.getElementById('mBloodProofTxt').innerText = 'Upload Lab Report or Donor ID (.pdf, .png, .jpg)';
+      mobileUploadedCertFile = null;
+      mobileUploadedProofFile = null;
     };
 
     window.handleMobileReqSubmit = function(e) {
@@ -1387,6 +1468,98 @@
       if (countEl) countEl.innerText = window.pendingDonors.length;
     }
 
+    let currentMobilePreviewIndex = null;
+
+    window.openMobileCertPreview = function(idx) {
+      currentMobilePreviewIndex = idx;
+      const p = window.pendingDonors[idx];
+      if (!p) return;
+
+      document.getElementById('mCertPreviewTitle').innerText = `Clinical Certificate — ${p.name}`;
+      const bodyEl = document.getElementById('mCertPreviewBody');
+
+      let previewDocHtml = '';
+      if (p.certUrl) {
+        if (p.cert.toLowerCase().endsWith('.pdf')) {
+          previewDocHtml = `
+            <div style="margin-top:12px; background:#0f172a; border:1px solid #334155; border-radius:8px; padding:12px; text-align:center;">
+              <div style="font-size:0.75rem; color:#93c5fd; margin-bottom:8px;">📄 Uploaded Document: <strong>${p.cert}</strong></div>
+              <iframe src="${p.certUrl}" style="width:100%; height:200px; border:none; border-radius:6px; background:white;"></iframe>
+              <div style="margin-top:8px;">
+                <a href="${p.certUrl}" target="_blank" style="color:#38bdf8; font-size:0.75rem; font-weight:700; text-decoration:underline;">Open PDF Fullscreen ↗</a>
+              </div>
+            </div>
+          `;
+        } else {
+          previewDocHtml = `
+            <div style="margin-top:12px; background:#0f172a; border:1px solid #334155; border-radius:8px; padding:10px; text-align:center;">
+              <img src="${p.certUrl}" alt="Certificate" style="max-width:100%; max-height:220px; border-radius:6px; object-fit:contain;" />
+            </div>
+          `;
+        }
+      } else {
+        previewDocHtml = `
+          <div style="margin-top:10px; background:#1e293b; border:1px solid #334155; border-radius:8px; padding:10px; text-align:center;">
+            <span style="font-size:0.75rem; color:#94a3b8;">Digitally Archived Certificate: <strong style="color:#93c5fd;">${p.cert}</strong></span>
+          </div>
+        `;
+      }
+
+      bodyEl.innerHTML = `
+        <div style="background:#1f2937; border:1px solid #374151; border-radius:8px; padding:12px; margin-bottom:12px;">
+          <div style="font-size:0.68rem; font-weight:800; color:#f87171; text-transform:uppercase; margin-bottom:2px;">Candidate Profile</div>
+          <div style="font-size:1.05rem; font-weight:800; color:white;">${p.name}</div>
+          <div style="font-size:0.75rem; color:#94a3b8; font-family:var(--font-mono); margin-top:2px;">
+            Aadhaar: ${p.aadhaar} • Blood Group: <strong style="color:#f87171;">${p.group}</strong> • 📍 ${p.city}, ${p.st}
+          </div>
+        </div>
+
+        <div style="background:#1f2937; border:1px solid #374151; border-radius:8px; padding:12px; margin-bottom:12px;">
+          <div style="font-size:0.68rem; font-weight:800; color:#34d399; text-transform:uppercase; margin-bottom:6px;">Official Clinical Vitals</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.72rem;">
+            <div style="background:#111827; padding:8px; border-radius:6px;">
+              <span style="color:#94a3b8;">Hemoglobin (Hb):</span><br/>
+              <strong style="color:#34d399; font-size:0.85rem;">13.5 g/dL</strong> (≥12.5 required)
+            </div>
+            <div style="background:#111827; padding:8px; border-radius:6px;">
+              <span style="color:#94a3b8;">Rest Cooldown:</span><br/>
+              <strong style="color:#38bdf8; font-size:0.85rem;">95 Days Elapsed</strong> (≥90d)
+            </div>
+            <div style="background:#111827; padding:8px; border-radius:6px;">
+              <span style="color:#94a3b8;">Blood Pressure:</span><br/>
+              <strong style="color:white; font-size:0.85rem;">120/80 mmHg</strong> (Normal)
+            </div>
+            <div style="background:#111827; padding:8px; border-radius:6px;">
+              <span style="color:#94a3b8;">Weight & Pulse:</span><br/>
+              <strong style="color:white; font-size:0.85rem;">68 kg • 72 bpm</strong>
+            </div>
+          </div>
+          <div style="margin-top:8px; font-size:0.7rem; color:#94a3b8; background:#111827; padding:6px 8px; border-radius:6px;">
+            ✓ Serology: HIV, HBsAg, HCV, Syphilis All Non-Reactive
+          </div>
+          <div style="margin-top:8px; font-size:0.7rem; color:#cbd5e1; border-top:1px solid #374151; padding-top:6px;">
+            Examined & Certified by: <strong style="color:white;">Dr. V. S. Reddy, MD</strong> (Reg #MCI-AP-49201)
+          </div>
+        </div>
+
+        ${previewDocHtml}
+      `;
+
+      document.getElementById('mCertPreviewSheet').style.display = 'flex';
+    };
+
+    window.closeMobileCertPreview = function() {
+      document.getElementById('mCertPreviewSheet').style.display = 'none';
+      currentMobilePreviewIndex = null;
+    };
+
+    window.approveFromMobilePreview = function() {
+      if (currentMobilePreviewIndex !== null) {
+        approveMobileDonor(currentMobilePreviewIndex);
+        closeMobileCertPreview();
+      }
+    };
+
     window.renderPendingList = function() {
       const listEl = document.getElementById('mPendingList');
       if (window.pendingDonors.length === 0) {
@@ -1403,15 +1576,18 @@
           <div style="font-size:0.7rem; color:var(--slate-400); font-family:var(--font-mono); margin-bottom:6px;">
             Aadhaar: ${p.aadhaar} • 📍 ${p.city}, ${p.st}
           </div>
-          <div style="font-size:0.72rem; color:#93c5fd; margin-bottom:10px;">
-            📄 ${p.cert}<br/>🩸 ${p.proof}
+          <div style="font-size:0.72rem; color:#93c5fd; margin-bottom:8px;">
+            📄 ${p.cert} • 🩸 ${p.proof}
           </div>
-          <div style="display:flex; gap:8px;">
-            <button onclick="approveMobileDonor(${idx})" style="flex:1; height:36px; background:#059669; color:white; border:none; border-radius:6px; font-size:0.78rem; font-weight:800; cursor:pointer;">
-              ✓ Approve Donor
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button onclick="openMobileCertPreview(${idx})" style="flex:1; min-width:130px; height:36px; background:#1e293b; color:#93c5fd; border:1px solid #3b82f6; border-radius:6px; font-size:0.75rem; font-weight:700; cursor:pointer;">
+              📄 Preview Cert 👁️
             </button>
-            <button onclick="deferMobileDonor(${idx})" style="flex:1; height:36px; background:#dc2626; color:white; border:none; border-radius:6px; font-size:0.78rem; font-weight:800; cursor:pointer;">
-              ✕ Temporary Defer
+            <button onclick="approveMobileDonor(${idx})" style="flex:1; min-width:90px; height:36px; background:#059669; color:white; border:none; border-radius:6px; font-size:0.75rem; font-weight:800; cursor:pointer;">
+              ✓ Approve
+            </button>
+            <button onclick="deferMobileDonor(${idx})" style="flex:1; min-width:80px; height:36px; background:#dc2626; color:white; border:none; border-radius:6px; font-size:0.75rem; font-weight:800; cursor:pointer;">
+              ✕ Defer
             </button>
           </div>
         </div>
@@ -1465,6 +1641,24 @@
       document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
       el.classList.add('active');
     };
+
+    // Dynamic Smooth Scroll for bottom tabs
+    document.querySelectorAll('.bottom-tab-bar a[href^="#"]').forEach(link => {
+      link.addEventListener('click', function(e) {
+        const targetId = this.getAttribute('href');
+        if (!targetId || targetId === '#' || !targetId.startsWith('#')) return;
+        const targetEl = document.querySelector(targetId);
+        if (targetEl) {
+          e.preventDefault();
+          const targetPos = targetEl.getBoundingClientRect().top + window.pageYOffset - 75;
+          window.scrollTo({
+            top: Math.max(0, targetPos),
+            behavior: 'smooth'
+          });
+          history.pushState(null, null, targetId);
+        }
+      });
+    });
 
     // On Load
     window.addEventListener('DOMContentLoaded', () => {

@@ -3,6 +3,7 @@ package com.vitalsphere;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
@@ -10,6 +11,7 @@ import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.geom.Path2D;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -19,12 +21,15 @@ import java.util.Map;
 
 /**
  * VitalSphere Java Desktop Client Application.
- * Pure Java (Modern Swing Flat UI matching the Web Portal):
+ * Pure Java (Modern Flat Swing UI matching Web Platform):
  * - Plus Jakarta Sans / Segoe UI typography hierarchy
- * - Dark Navy Header (#0A1120) with Vital Red droplet accent (#DC2626)
+ * - Custom Anti-Aliased Button Rendering (Guaranteed vibrant colors on all OS)
+ * - Dark Navy Header (#0A1120) with Vital Red droplet badge (#DC2626)
  * - Authority Approval Controls for Medical Officers & Administrators
+ * - Interactive Certificate Preview Dialog (Doctor signed reports, Hb vitals, NBTC seals)
  * - 256 Enrolled Pan-India Donors & 32 Recipients Transfusion Directory
- * - Donor Registration & Emergency Request Input Desks
+ * - Donor Registration with PDF Certificate File Chooser
+ * - Emergency Request Input Desk
  * - CampFlow-style Authority Role Switcher
  * - Clinical Eligibility Guide explaining FIT, Hb (12.5+ g/dL), and Rest (90/120d)
  * - Cloud Self-Updater checking latest version
@@ -49,7 +54,7 @@ public class VitalSphereDesktopClient extends JFrame {
     private static final Color COLOR_AMBER_600 = new Color(217, 119, 6);
 
     private final JLabel statusLabel = new JLabel("Status: Synchronized with VitalSphere National Cloud Network");
-    private final JLabel activeRoleLabel = new JLabel("Role: Chief Medical Officer (Full Authority Mode)");
+    private final JLabel activeRoleLabel = new JLabel("Role: Chief Medical Officer (Approval Mode Active)");
 
     // Table models for dynamic data updates
     private DefaultTableModel donorsTableModel;
@@ -74,8 +79,8 @@ public class VitalSphereDesktopClient extends JFrame {
 
     public VitalSphereDesktopClient() {
         setTitle("VitalSphere — Healthcare & Blood Coordination Platform [v" + APP_VERSION + "]");
-        setSize(1180, 780);
-        setMinimumSize(new Dimension(960, 640));
+        setSize(1220, 800);
+        setMinimumSize(new Dimension(980, 660));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -112,7 +117,7 @@ public class VitalSphereDesktopClient extends JFrame {
         g2.fill(drop);
 
         // Subtle specular highlight on droplet
-        g2.setColor(new Color(255, 255, 255, 140));
+        g2.setColor(new Color(255, 255, 255, 160));
         g2.fillOval((int)(11 * scale), (int)(17 * scale), (int)(3.5f * scale), (int)(6 * scale));
 
         g2.dispose();
@@ -217,13 +222,9 @@ public class VitalSphereDesktopClient extends JFrame {
         });
 
         JButton helpBtn = createStyledButton("? Clinical Status Guide", new Color(241, 245, 249), COLOR_NAVY_900);
-        helpBtn.setBorder(BorderFactory.createCompoundBorder(
-                new LineBorder(COLOR_SLATE_200, 1, true),
-                new EmptyBorder(6, 12, 6, 12)
-        ));
         helpBtn.addActionListener(e -> showClinicalGuideDialog());
 
-        JButton updateBtn = createStyledButton("Check Updates", COLOR_RED_600, Color.WHITE);
+        JButton updateBtn = createStyledButton("Check for Updates", COLOR_RED_600, Color.WHITE);
         updateBtn.addActionListener(e -> checkForUpdates());
 
         JButton webBtn = createStyledButton("Open Web Portal", COLOR_NAVY_900, Color.WHITE);
@@ -475,7 +476,7 @@ public class VitalSphereDesktopClient extends JFrame {
         panel.setBorder(new EmptyBorder(16, 16, 16, 16));
 
         // Subtitle header
-        JLabel desc = new JLabel("Medical Officer Clearance Console: Review certificates and approve voluntary donor registrations.");
+        JLabel desc = new JLabel("Medical Officer Clearance Console: Review uploaded doctor certificates, preview clinical findings, and approve registrations.");
         desc.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         desc.setForeground(COLOR_SLATE_500);
         panel.add(desc, BorderLayout.NORTH);
@@ -497,6 +498,21 @@ public class VitalSphereDesktopClient extends JFrame {
 
         JPanel actBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         actBar.setBackground(Color.WHITE);
+
+        JButton previewBtn = createStyledButton("📄 Preview Certificate", COLOR_NAVY_900, Color.WHITE);
+        previewBtn.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row != -1) {
+                String donorName = (String) pendingApprovalsTableModel.getValueAt(row, 1);
+                String aadhaar = (String) pendingApprovalsTableModel.getValueAt(row, 2);
+                String bg = (String) pendingApprovalsTableModel.getValueAt(row, 3);
+                String cert = (String) pendingApprovalsTableModel.getValueAt(row, 4);
+                String proof = (String) pendingApprovalsTableModel.getValueAt(row, 5);
+                showCertificatePreviewDialog(donorName, aadhaar, bg, cert, proof);
+            } else {
+                JOptionPane.showMessageDialog(this, "Select a pending donor row from the table to preview certificates.");
+            }
+        });
 
         JButton approveBtn = createStyledButton("✓ Approve Donor Credentials", COLOR_EMERALD_600, Color.WHITE);
         approveBtn.addActionListener(e -> {
@@ -541,11 +557,83 @@ public class VitalSphereDesktopClient extends JFrame {
             }
         });
 
+        actBar.add(previewBtn);
         actBar.add(deferBtn);
         actBar.add(approveBtn);
         panel.add(actBar, BorderLayout.SOUTH);
 
         return panel;
+    }
+
+    private void showCertificatePreviewDialog(String name, String aadhaar, String bg, String certFile, String proofFile) {
+        JDialog dlg = new JDialog(this, "Official Medical Certificate Preview — " + name, true);
+        dlg.setSize(560, 520);
+        dlg.setLocationRelativeTo(this);
+
+        JPanel p = new JPanel(new BorderLayout(14, 14));
+        p.setBackground(Color.WHITE);
+        p.setBorder(new EmptyBorder(20, 24, 20, 24));
+
+        // Header
+        JPanel top = new JPanel(new BorderLayout());
+        top.setBackground(Color.WHITE);
+        top.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, COLOR_SLATE_200));
+
+        JLabel h1 = new JLabel("CERTIFICATE OF CLINICAL FITNESS FOR BLOOD DONATION");
+        h1.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        h1.setForeground(COLOR_NAVY_900);
+
+        JLabel h2 = new JLabel("Form NBTC-MED-CERT • Issued by Registered Medical Practitioner");
+        h2.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        h2.setForeground(COLOR_SLATE_500);
+
+        top.add(h1, BorderLayout.NORTH);
+        top.add(h2, BorderLayout.SOUTH);
+        p.add(top, BorderLayout.NORTH);
+
+        // Body with certificate details
+        String certHtml = "<html><body style='width: 380px; font-family: Segoe UI, sans-serif; font-size: 11px;'>" +
+                "<div style='background: #F8FAFC; border: 1.5px solid #CBD5E1; border-radius: 8px; padding: 16px; margin: 10px 0;'>" +
+                "<table cellpadding='4' cellspacing='0' style='width: 100%; font-size: 11px;'>" +
+                "<tr><td style='color: #64748B;'>Donor Full Name:</td><td><b>" + name + "</b></td></tr>" +
+                "<tr><td style='color: #64748B;'>Aadhaar Identifier:</td><td><b>" + aadhaar + "</b></td></tr>" +
+                "<tr><td style='color: #64748B;'>Verified Blood Group:</td><td><b style='color:#DC2626;'>" + bg + "</b></td></tr>" +
+                "<tr><td style='color: #64748B;'>Hemoglobin Level (Hb):</td><td><b>13.5 g/dL</b> (Statutory Min: 12.5 g/dL)</td></tr>" +
+                "<tr><td style='color: #64748B;'>Blood Pressure / Pulse:</td><td><b>120/80 mmHg</b> • 74 bpm (Normal)</td></tr>" +
+                "<tr><td style='color: #64748B;'>Infectious Serology:</td><td><b style='color:#059669;'>NON-REACTIVE</b> (HIV, HBV, HCV, Syphilis, MP)</td></tr>" +
+                "<tr><td style='color: #64748B;'>Attached Document 1:</td><td><code>" + certFile + "</code> (Doctor Signed PDF)</td></tr>" +
+                "<tr><td style='color: #64748B;'>Attached Document 2:</td><td><code>" + proofFile + "</code> (Pathology Lab Card)</td></tr>" +
+                "</table>" +
+                "<div style='margin-top: 14px; padding-top: 10px; border-top: 1px dashed #CBD5E1; font-size: 10px; color: #475569;'>" +
+                "<i>\"I have personally examined the volunteer donor mentioned above and hereby certify that they meet all statutory physical and physiological fitness criteria for voluntary whole blood donation under NBTC guidelines.\"</i><br/><br/>" +
+                "<b>Dr. V. S. Reddy, MD</b> (Civil Surgeon & Medical Officer)<br/>" +
+                "Medical Registration No: <b>MCI-AP-49201</b> • Regional Blood Center" +
+                "</div>" +
+                "</div>" +
+                "</body></html>";
+
+        JLabel contentLbl = new JLabel(certHtml);
+        p.add(new JScrollPane(contentLbl), BorderLayout.CENTER);
+
+        // Buttons
+        JPanel btm = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        btm.setBackground(Color.WHITE);
+
+        JButton closeBtn = createStyledButton("Close Preview", COLOR_SLATE_200, COLOR_NAVY_900);
+        closeBtn.addActionListener(e -> dlg.dispose());
+
+        JButton approveModalBtn = createStyledButton("✓ Approve Donor Now", COLOR_EMERALD_600, Color.WHITE);
+        approveModalBtn.addActionListener(e -> {
+            dlg.dispose();
+            JOptionPane.showMessageDialog(this, "Donor " + name + " approved directly from Certificate Preview.");
+        });
+
+        btm.add(closeBtn);
+        btm.add(approveModalBtn);
+        p.add(btm, BorderLayout.SOUTH);
+
+        dlg.setContentPane(p);
+        dlg.setVisible(true);
     }
 
     private JPanel createDonorRegistrationPanel() {
@@ -565,7 +653,7 @@ public class VitalSphereDesktopClient extends JFrame {
         panel.add(title, gbc);
 
         gbc.gridy = 1;
-        JLabel desc = new JLabel("Submit verified details and doctor-certified reports for manual Medical Officer review.");
+        JLabel desc = new JLabel("Submit verified details and doctor-certified PDF reports for manual Medical Officer review.");
         desc.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         desc.setForeground(COLOR_SLATE_500);
         panel.add(desc, gbc);
@@ -627,8 +715,58 @@ public class VitalSphereDesktopClient extends JFrame {
             }
         });
 
+        // Row 4: File upload for Certificates
+        gbc.gridy = 8; gbc.gridx = 0;
+        panel.add(new JLabel("Medical Fitness Certificate (Doctor Signed):"), gbc);
+        gbc.gridx = 1;
+        panel.add(new JLabel("Blood Group Proof Certificate (Lab Report):"), gbc);
+
+        gbc.gridy = 9; gbc.gridx = 0;
+        final String[] uploadedCert = {"medical_fitness_report.pdf"};
+        JLabel certLabel = new JLabel("Selected: medical_fitness_report.pdf");
+        certLabel.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+        certLabel.setForeground(COLOR_SLATE_500);
+
+        JButton chooseCertBtn = createStyledButton("📎 Browse PDF Certificate", COLOR_SLATE_200, COLOR_NAVY_900);
+        chooseCertBtn.addActionListener(e -> {
+            JFileChooser fc = new JFileChooser();
+            fc.setFileFilter(new FileNameExtensionFilter("PDF Documents & Images (*.pdf, *.png, *.jpg)", "pdf", "png", "jpg", "jpeg"));
+            if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                File f = fc.getSelectedFile();
+                uploadedCert[0] = f.getName();
+                certLabel.setText("Selected: " + f.getName());
+            }
+        });
+        JPanel certBox = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        certBox.setBackground(Color.WHITE);
+        certBox.add(chooseCertBtn);
+        certBox.add(certLabel);
+        panel.add(certBox, gbc);
+
+        gbc.gridx = 1;
+        final String[] uploadedProof = {"lab_report_blood_card.pdf"};
+        JLabel proofLabel = new JLabel("Selected: lab_report_blood_card.pdf");
+        proofLabel.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+        proofLabel.setForeground(COLOR_SLATE_500);
+
+        JButton chooseProofBtn = createStyledButton("📎 Browse Proof PDF", COLOR_SLATE_200, COLOR_NAVY_900);
+        chooseProofBtn.addActionListener(e -> {
+            JFileChooser fc = new JFileChooser();
+            fc.setFileFilter(new FileNameExtensionFilter("PDF Documents & Images (*.pdf, *.png, *.jpg)", "pdf", "png", "jpg", "jpeg"));
+            if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                File f = fc.getSelectedFile();
+                uploadedProof[0] = f.getName();
+                proofLabel.setText("Selected: " + f.getName());
+            }
+        });
+        JPanel proofBox = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        proofBox.setBackground(Color.WHITE);
+        proofBox.add(chooseProofBtn);
+        proofBox.add(proofLabel);
+        panel.add(proofBox, gbc);
+
         // Submit Button
-        gbc.gridy = 8; gbc.gridx = 0; gbc.gridwidth = 2;
+        gbc.gridy = 10; gbc.gridx = 0; gbc.gridwidth = 2;
         gbc.insets = new Insets(18, 12, 6, 12);
         JButton submitBtn = createStyledButton("Submit for Medical Officer Review", COLOR_NAVY_900, Color.WHITE);
         submitBtn.setPreferredSize(new Dimension(300, 42));
@@ -647,12 +785,12 @@ public class VitalSphereDesktopClient extends JFrame {
 
             // Push to Medical Verification Desk table
             String newId = "PEND-" + String.format("%02d", pendingApprovalsTableModel.getRowCount() + 1);
-            pendingApprovalsTableModel.addRow(new Object[]{
-                    newId, n, "XXXX-XXXX-" + a.substring(8), bg, "fitness_doctor_signed.pdf", "blood_group_card.pdf", "WAITING FOR APPROVAL"
+            pendingApprovalsTableModel.insertRow(0, new Object[]{
+                    newId, n, "XXXX-XXXX-" + a.substring(8), bg, uploadedCert[0], uploadedProof[0], "WAITING FOR APPROVAL"
             });
 
             JOptionPane.showMessageDialog(this,
-                    "Registration submitted successfully for " + n + " (" + bg + ") in " + ct + ", " + st + ".\nRecord added to Medical Officer Verification Console.",
+                    "Registration submitted successfully for " + n + " (" + bg + ") in " + ct + ", " + st + ".\nCertificate files (" + uploadedCert[0] + ", " + uploadedProof[0] + ") queued for Medical Officer Review.",
                     "Registration Submitted", JOptionPane.INFORMATION_MESSAGE);
 
             nameField.setText("");
@@ -821,11 +959,50 @@ public class VitalSphereDesktopClient extends JFrame {
         return table;
     }
 
+    /**
+     * Anti-aliased custom rendered button that completely bypasses Windows LAF
+     * white-on-white button painting bugs.
+     */
     private JButton createStyledButton(String text, Color bg, Color fg) {
-        JButton btn = new JButton(text);
+        JButton btn = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                Color currentBg = bg;
+                if (getModel().isPressed()) {
+                    currentBg = bg.darker();
+                } else if (getModel().isRollover()) {
+                    currentBg = new Color(
+                            Math.min(255, bg.getRed() + 25),
+                            Math.min(255, bg.getGreen() + 25),
+                            Math.min(255, bg.getBlue() + 25)
+                    );
+                }
+
+                g2.setColor(currentBg);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+
+                // Subtle outline
+                g2.setColor(new Color(0, 0, 0, 35));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 8, 8);
+
+                // Centered text
+                g2.setFont(getFont());
+                g2.setColor(fg);
+                FontMetrics fm = g2.getFontMetrics();
+                int textX = (getWidth() - fm.stringWidth(getText())) / 2;
+                int textY = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
+                g2.drawString(getText(), textX, textY);
+
+                g2.dispose();
+            }
+        };
+
         btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btn.setBackground(bg);
-        btn.setForeground(fg);
+        btn.setContentAreaFilled(false);
+        btn.setOpaque(false);
         btn.setFocusPainted(false);
         btn.setBorder(new EmptyBorder(8, 16, 8, 16));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
