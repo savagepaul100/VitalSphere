@@ -11,7 +11,8 @@ items_to_sync = [
     "src",
     "firebase.json",
     "scripts",
-    "pom.xml"
+    "pom.xml",
+    "Report and PPT"
 ]
 
 for item in items_to_sync:
