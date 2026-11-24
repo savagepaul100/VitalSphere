@@ -64,7 +64,7 @@
 
     /* Fixed Offset for Smooth Scrolling so section headers are never cut off */
     *[id] {
-      scroll-margin-top: 110px;
+      scroll-margin-top: 125px;
     }
 
     /* Top Strip */
@@ -498,7 +498,7 @@
     }
 
     section[id], .form-container-box, .directory-wrapper {
-      scroll-margin-top: 100px;
+      scroll-margin-top: 125px;
     }
 
     .file-input-tile {
@@ -1023,10 +1023,10 @@
       </a>
 
       <div class="nav-menu">
-        <a href="#inventory" class="nav-link">Live Stock</a>
-        <a href="#register" class="nav-link">Donor Registration</a>
-        <a href="#request" class="nav-link">Emergency Request</a>
-        <a href="#download" class="nav-link">Desktop Java App</a>
+        <a href="#inventory" onclick="scrollToSection('inventory'); return false;" class="nav-link">Live Stock</a>
+        <a href="#register" onclick="scrollToSection('register'); return false;" class="nav-link">Donor Registration</a>
+        <a href="#request" onclick="scrollToSection('request'); return false;" class="nav-link">Emergency Request</a>
+        <a href="#download" onclick="scrollToSection('download'); return false;" class="nav-link">Desktop Java App</a>
       </div>
 
       <div style="display:flex; gap:10px; align-items:center;" id="navAuthArea">
@@ -1104,8 +1104,8 @@
         <h1 class="hero-title">Connecting Voluntary Donors with Critical Patients</h1>
         <p class="hero-text">Search live verified blood stocks across licensed centers nationwide, explore certified donors with verified health clearance, or submit an emergency transfusion requirement.</p>
         <div class="hero-actions">
-          <a href="#inventory" class="btn btn-primary" style="padding:12px 24px; font-size:0.95rem;">Search Live Stock</a>
-          <button class="btn btn-secondary" onclick="openFullscreenDirectory('recipients')" style="padding:12px 24px; font-size:0.95rem;">Who Wants Blood (32 Patients)</button>
+          <a href="#inventory" onclick="scrollToSection('inventory'); return false;" class="btn btn-primary" style="padding:12px 24px; font-size:0.95rem;">Search Live Stock</a>
+          <button class="btn btn-secondary" onclick="openFullscreenDirectory('recipients')" style="padding:12px 24px; font-size:0.95rem;">Who Wants Blood (<span id="heroRecipientBtnCount">64</span> Patients)</button>
         </div>
       </div>
 
@@ -1891,7 +1891,7 @@
       const BLOOD_GROUPS = ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"];
       const ALL_STATES = Object.keys(window.INDIA_STATES_DATA);
 
-      for (let j = 1; j <= 32; j++) {
+      for (let j = 1; j <= 64; j++) {
         const pfn = FIRST_NAMES[(j * 2) % FIRST_NAMES.length];
         const pln = LAST_NAMES[(j * 5) % LAST_NAMES.length];
         const bg = BLOOD_GROUPS[(j * 2) % BLOOD_GROUPS.length];
@@ -2045,6 +2045,21 @@
     };
 
     // Fullscreen Directory Dialog (Clean List & Modern Drilldown)
+    // Smooth scrolling helper with guaranteed clearance so headers are never covered
+    window.scrollToSection = function(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        const navHeight = 125;
+        const bodyRect = document.body.getBoundingClientRect().top;
+        const elementRect = el.getBoundingClientRect().top;
+        const offsetPosition = elementRect - bodyRect - navHeight;
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
+    };
+
     window.openFullscreenDirectory = function(tab = 'donors', groupFilter = null) {
       currentFilterGroup = groupFilter;
       const modal = document.getElementById('fullscreenDirectoryModal');
@@ -2352,11 +2367,7 @@
       const r = (window.fullRecipientsList || []).find(x => x.id === reqId);
       if (!r) return;
 
-      if (!window.currentUser) {
-        alert("Please sign in with your account to confirm donation and dispatch a direct notification to the patient's attendant.");
-        openLoginModal();
-        return;
-      }
+      const donorName = window.currentUser ? (window.currentUser.name || window.currentUser.email) : "Verified Voluntary Donor";
 
       const confirmed = confirm(
         `Confirm Voluntary Blood Donation Commitment:
@@ -2376,13 +2387,13 @@
 
       if (!confirmed) return;
 
-      r.status = 'DONOR FOUND (Coordination in progress)';
+      r.status = 'DONOR FOUND (Matched with ' + donorName + ')';
 
       // Dispatch real-time notifications
       addNotification({
         category: 'DONATION',
         title: `✓ Donor Found for ${r.patientName}!`,
-        message: `Donor ${window.currentUser.name || window.currentUser.email} has accepted emergency request ${r.id} (${r.bloodGroup}) at ${r.hospital}. Attendant notified at ${r.contact}.`,
+        message: `Donor ${donorName} has accepted emergency request ${r.id} (${r.bloodGroup}) at ${r.hospital}. Attendant notified at ${r.contact}.`,
         time: 'Just now',
         unread: true
       });
@@ -2390,7 +2401,7 @@
       addNotification({
         category: 'DONATION',
         title: `Donation Commitment Registered`,
-        message: `You have committed to donate blood for ${r.patientName} (${r.bloodGroup}) at ${r.hospital}. Please reach out to attendant at ${r.contact}.`,
+        message: `You have committed to donate blood for ${r.patientName} (${r.bloodGroup}) at ${r.hospital}. Attendant phone: ${r.contact}.`,
         time: 'Just now',
         unread: true
       });
@@ -2407,6 +2418,7 @@
         `Patient Attendant: ${r.contact}
 ` +
         `Hospital Desk: ${r.hospital}
+
 ` +
         `Thank you for saving a life!`
       );

@@ -85,7 +85,7 @@ public class VitalSphereDesktopClient extends JFrame {
     }
 
     public VitalSphereDesktopClient() {
-        setTitle("VitalSphere — Healthcare & Blood Coordination Platform [v" + APP_VERSION + "]");
+        setTitle("VitalSphere \u2014 Healthcare & Blood Coordination Platform [v" + APP_VERSION + "]");
         setSize(1220, 800);
         setMinimumSize(new Dimension(980, 660));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -266,7 +266,7 @@ public class VitalSphereDesktopClient extends JFrame {
         statusLabel.setForeground(new Color(148, 163, 184));
         footer.add(statusLabel, BorderLayout.WEST);
 
-        JLabel verLbl = new JLabel("© 2026 VitalSphere Desktop Node • v" + APP_VERSION);
+        JLabel verLbl = new JLabel("© 2026 VitalSphere Desktop Node \u2022 v" + APP_VERSION);
         verLbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         verLbl.setForeground(new Color(148, 163, 184));
         footer.add(verLbl, BorderLayout.EAST);
@@ -304,7 +304,7 @@ public class VitalSphereDesktopClient extends JFrame {
         // Bottom action bar
         JPanel bar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         bar.setBackground(Color.WHITE);
-        JButton viewDonorsBtn = createStyledButton("Explore Matching Donors in Directory →", COLOR_RED_600, Color.WHITE);
+        JButton viewDonorsBtn = createStyledButton("Explore Matching Donors in Directory \u2192", COLOR_RED_600, Color.WHITE);
         viewDonorsBtn.addActionListener(e -> mainTabbedPane.setSelectedIndex(1));
         bar.add(viewDonorsBtn);
 
@@ -511,7 +511,7 @@ public class VitalSphereDesktopClient extends JFrame {
             }
         });
 
-        JButton approveBtn = createStyledButton("✓ Approve Donor Credentials", COLOR_EMERALD_600, Color.WHITE);
+        JButton approveBtn = createStyledButton("\u2713 Approve Donor Credentials", COLOR_EMERALD_600, Color.WHITE);
         approveBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row != -1) {
@@ -540,7 +540,7 @@ public class VitalSphereDesktopClient extends JFrame {
             }
         });
 
-        JButton deferBtn = createStyledButton("✕ Decline / Temporary Deferral", COLOR_RED_600, Color.WHITE);
+        JButton deferBtn = createStyledButton("\u2715 Decline / Temporary Deferral", COLOR_RED_600, Color.WHITE);
         deferBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row != -1) {
@@ -748,7 +748,7 @@ public class VitalSphereDesktopClient extends JFrame {
     }
 
     private void showCertificatePreviewDialog(String name, String aadhaar, String bg, String certFile, String proofFile) {
-        JDialog dlg = new JDialog(this, "Official Medical Certificate & Laboratory Clearance — " + name, true);
+        JDialog dlg = new JDialog(this, "Official Medical Certificate & Laboratory Clearance \u2014 " + name, true);
         dlg.setSize(740, 700);
         dlg.setLocationRelativeTo(this);
 
@@ -765,7 +765,7 @@ public class VitalSphereDesktopClient extends JFrame {
         h1.setFont(new Font("Segoe UI", Font.BOLD, 13));
         h1.setForeground(COLOR_NAVY_900);
 
-        JLabel h2 = new JLabel("National Blood Transfusion Council (NBTC) Standard Form-04 • Statutory Medical Review");
+        JLabel h2 = new JLabel("National Blood Transfusion Council (NBTC) Standard Form-04 \u2022 Statutory Medical Review");
         h2.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         h2.setForeground(COLOR_SLATE_500);
 
@@ -785,7 +785,7 @@ public class VitalSphereDesktopClient extends JFrame {
                 "<tr><td style='color: #64748B;'>Aadhaar Identifier:</td><td><b>" + aadhaar + "</b></td></tr>" +
                 "<tr><td style='color: #64748B;'>Verified Blood Group:</td><td><b style='color:#DC2626; font-size:13px;'>" + bg + "</b></td></tr>" +
                 "<tr><td style='color: #64748B;'>Hemoglobin Level (Hb):</td><td><b style='color:#059669;'>13.5 g/dL</b> (NBTC Statutory Min: 12.5 g/dL)</td></tr>" +
-                "<tr><td style='color: #64748B;'>Blood Pressure / Pulse:</td><td><b>120/80 mmHg</b> • 74 bpm (Optimal Physiological Range)</td></tr>" +
+                "<tr><td style='color: #64748B;'>Blood Pressure / Pulse:</td><td><b>120/80 mmHg</b> \u2022 74 bpm (Optimal Physiological Range)</td></tr>" +
                 "<tr><td style='color: #64748B;'>Infectious Serology Screen:</td><td><b style='color:#059669;'>NON-REACTIVE</b> (HIV-1/2, HBsAg, HCV, VDRL, Malaria)</td></tr>" +
                 "<tr><td style='color: #64748B;'>Attached Document 1:</td><td><code>" + certFile + "</code> (Doctor Signed Fitness Report)</td></tr>" +
                 "<tr><td style='color: #64748B;'>Attached Document 2:</td><td><code>" + proofFile + "</code> (Official Lab Blood Group Card)</td></tr>" +
@@ -793,7 +793,7 @@ public class VitalSphereDesktopClient extends JFrame {
                 "<div style='margin-top: 14px; padding-top: 10px; border-top: 1px dashed #CBD5E1; font-size: 10px; color: #475569;'>" +
                 "<i>&quot;I have personally examined the volunteer donor mentioned above and inspected all uploaded diagnostic certificates. I hereby certify that the candidate meets all statutory physical and physiological fitness criteria for voluntary blood donation.&quot;</i><br/><br/>" +
                 "<b>Dr. V. S. Reddy, MD</b> (Civil Surgeon & Chief Medical Officer)<br/>" +
-                "Medical Registration No: <b>MCI-AP-49201</b> • Directorate of Health Services" +
+                "Medical Registration No: <b>MCI-AP-49201</b> \u2022 Directorate of Health Services" +
                 "</div>" +
                 "</div>" +
                 "</body></html>";
@@ -827,7 +827,7 @@ public class VitalSphereDesktopClient extends JFrame {
                 "Official Clinical Clearance Slip generated successfully.\nReady to print via registered Hospital Transfusion Desk.",
                 "Print Verification Slip", JOptionPane.INFORMATION_MESSAGE));
 
-        JButton approveModalBtn = createStyledButton("✓ Approve Donor Now", COLOR_EMERALD_600, Color.WHITE);
+        JButton approveModalBtn = createStyledButton("\u2713 Approve Donor Now", COLOR_EMERALD_600, Color.WHITE);
         approveModalBtn.addActionListener(e -> {
             dlg.dispose();
             JOptionPane.showMessageDialog(this, "Donor " + name + " approved directly from Certificate Preview.");
@@ -860,7 +860,7 @@ public class VitalSphereDesktopClient extends JFrame {
         }
 
         // Visual Certificate Window
-        JDialog docDlg = new JDialog(this, docType + " — " + donorName, true);
+        JDialog docDlg = new JDialog(this, docType + " \u2014 " + donorName, true);
         docDlg.setSize(560, 480);
         docDlg.setLocationRelativeTo(this);
 
@@ -872,7 +872,7 @@ public class VitalSphereDesktopClient extends JFrame {
                 "<div style='border: 2px solid #059669; border-radius: 8px; padding: 20px; background: #ECFDF5;'>" +
                 "<div style='text-align: center; border-bottom: 1.5px solid #059669; padding-bottom: 10px; margin-bottom: 14px;'>" +
                 "<h2 style='color: #065F46; margin: 0; font-size: 15px;'>OFFICIAL STATUTORY DOCUMENT ATTACHMENT</h2>" +
-                "<span style='color: #047857; font-size: 10px;'>Directorate of Health Services • National Blood Transfusion Council</span>" +
+                "<span style='color: #047857; font-size: 10px;'>Directorate of Health Services \u2022 National Blood Transfusion Council</span>" +
                 "</div>" +
                 "<table cellpadding='6' cellspacing='0' style='width: 100%; font-size: 11px; color: #065F46;'>" +
                 "<tr><td><b>Document Title:</b></td><td>" + docType + "</td></tr>" +
@@ -883,7 +883,7 @@ public class VitalSphereDesktopClient extends JFrame {
                 "<tr><td><b>Signatory Medical Officer:</b></td><td>Dr. V. S. Reddy, MD (Reg #MCI-AP-49201)</td></tr>" +
                 "</table>" +
                 "<div style='margin-top: 20px; padding: 12px; background: white; border: 1px dashed #059669; border-radius: 6px; font-size: 10px; color: #065F46;'>" +
-                "<b>Digital Certificate Digest:</b> SHA-256 Verified • Timestamp: Active Verification Session<br/>" +
+                "<b>Digital Certificate Digest:</b> SHA-256 Verified \u2022 Timestamp: Active Verification Session<br/>" +
                 "This document is archived on VitalSphere Encrypted Cloud Storage and cleared for clinical transfusion." +
                 "</div>" +
                 "</div></body></html>";
@@ -1081,7 +1081,7 @@ public class VitalSphereDesktopClient extends JFrame {
 
         // Header Title
         gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
-        JLabel title = new JLabel("Ask for Blood — Emergency Transfusion Requirement");
+        JLabel title = new JLabel("Ask for Blood \u2014 Emergency Transfusion Requirement");
         title.setFont(new Font("Segoe UI", Font.BOLD, 16));
         title.setForeground(COLOR_NAVY_900);
         panel.add(title, gbc);

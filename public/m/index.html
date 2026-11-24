@@ -1128,12 +1128,8 @@
 
     <!-- Tab Switcher: Donors vs Recipients -->
     <div class="m-fs-tab-bar">
-      <button class="m-fs-tab-btn active" id="mFsTabDonors" onclick="switchMobileFsTab('donors')">
-        Donors (<span id="mFsDonorsCount">0</span>)
-      </button>
-      <button class="m-fs-tab-btn" id="mFsTabRecipients" onclick="switchMobileFsTab('recipients')">
-        Recipients (<span id="mFsRecipientsCount">0</span>)
-      </button>
+      <button class="m-fs-tab-btn active" id="mFsTabDonors" onclick="switchMobileFsTab('donors')">Donors</button>
+      <button class="m-fs-tab-btn" id="mFsTabRecipients" onclick="switchMobileFsTab('recipients')">Recipients</button>
     </div>
 
     <!-- Search Input -->
@@ -1633,6 +1629,11 @@
       if (cntDEl) cntDEl.innerText = matchedDonorsCount;
       const cntREl = document.getElementById('mFsRecipientsCount');
       if (cntREl) cntREl.innerText = matchedRecipientsCount;
+
+      const subEl = document.getElementById('mFsModalSubtitle');
+      if (subEl) {
+        subEl.innerText = `${matchedDonorsCount} Donors • ${matchedRecipientsCount} Recipients for ${window.mFsCurrentGroup === 'ALL' ? 'All Groups' : window.mFsCurrentGroup}`;
+      }
 
       if (window.mFsCurrentTab === 'donors') {
         let list = allDonors.filter(d => matchGroup(d.bloodGroup || d.group, window.mFsCurrentGroup));
