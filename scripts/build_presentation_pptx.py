@@ -7,7 +7,7 @@ from pptx.enum.text import PP_ALIGN
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
 
-print("Building VitalSphere Professional Presentation (.pptx)...")
+print("Building VitalSphere White & Red Angular Presentation (.pptx)...")
 
 output_dir = os.path.abspath("Report and PPT")
 os.makedirs(output_dir, exist_ok=True)
@@ -17,575 +17,869 @@ prs = pptx.Presentation()
 prs.slide_width = Inches(13.333)
 prs.slide_height = Inches(7.5)
 
-# Color Palette
-COLOR_NAVY_950 = RGBColor(10, 17, 32)
-COLOR_NAVY_900 = RGBColor(15, 23, 42)
-COLOR_RED_600 = RGBColor(220, 38, 38)
-COLOR_SLATE_400 = RGBColor(148, 163, 184)
-COLOR_SLATE_500 = RGBColor(100, 116, 139)
-COLOR_SLATE_700 = RGBColor(51, 65, 85)
+# STRICT WHITE & RED THEME PALETTE
 COLOR_WHITE = RGBColor(255, 255, 255)
-COLOR_EMERALD_600 = RGBColor(5, 150, 105)
-COLOR_CARD_BG = RGBColor(24, 34, 53)
+COLOR_BG_LIGHT = RGBColor(248, 250, 252) # Crisp subtle slate-50
+COLOR_RED_PRIMARY = RGBColor(220, 38, 38) # Crimson Red #DC2626
+COLOR_RED_DARK = RGBColor(185, 28, 28) # Deep Red #B91C1C
+COLOR_RED_LIGHT = RGBColor(254, 242, 242) # Red 50 tint
+COLOR_NAVY_DARK = RGBColor(10, 17, 32) # Deep Slate #0A1120
+COLOR_TEXT_MAIN = RGBColor(15, 23, 42) # Slate 900
+COLOR_TEXT_MUTED = RGBColor(71, 85, 105) # Slate 600
+COLOR_BORDER = RGBColor(226, 232, 240) # Slate 200 border
+COLOR_EMERALD = RGBColor(5, 150, 105)
 
-srm_logo_path = r"C:\Users\PAUL\Documents\Projects\Nexus-Arena\srm_logo.png"
+srm_logo_path = r"target\srm_logo.png"
 
-def get_clean_image_stream(file_path):
+def get_clean_image_stream(path):
     try:
-        im = Image.open(file_path)
+        im = Image.open(path)
         buf = io.BytesIO()
         im.save(buf, format='PNG')
         buf.seek(0)
         return buf
     except Exception as e:
-        print(f"Error converting {file_path}: {e}")
+        print(f"Error loading {path}: {e}")
         return None
 
-blank_slide_layout = prs.slide_layouts[6]
+blank_layout = prs.slide_layouts[6]
 
-def set_slide_background(slide, color):
+def set_slide_background(slide):
+    # Pure White background with top red accent line
     bg = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0), Inches(0), Inches(13.333), Inches(7.5))
     bg.fill.solid()
-    bg.fill.fore_color.rgb = color
+    bg.fill.fore_color.rgb = COLOR_WHITE
     bg.line.fill.background()
+
+    # Red top accent strip (Angular, 0 radius)
+    strip = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0), Inches(0), Inches(13.333), Inches(0.12))
+    strip.fill.solid()
+    strip.fill.fore_color.rgb = COLOR_RED_PRIMARY
+    strip.line.fill.background()
     return bg
 
-def add_header(slide, title, category="VITALSPHERE HEALTHCARE & BLOOD LOGISTICS PLATFORM"):
-    # Header strip
-    cat_box = slide.shapes.add_textbox(Inches(0.8), Inches(0.4), Inches(10), Inches(0.3))
+def add_slide_header(slide, title, category="CSE 213 • ADVANCED JAVA PROGRAMMING"):
+    # Category tag
+    cat_box = slide.shapes.add_textbox(Inches(0.8), Inches(0.35), Inches(9.5), Inches(0.28))
     tf_c = cat_box.text_frame
     tf_c.word_wrap = True
     p_c = tf_c.paragraphs[0]
     p_c.text = category.upper()
-    p_c.font.size = Pt(10)
+    p_c.font.size = Pt(9.5)
     p_c.font.bold = True
-    p_c.font.color.rgb = COLOR_RED_600
+    p_c.font.color.rgb = COLOR_RED_PRIMARY
 
-    title_box = slide.shapes.add_textbox(Inches(0.8), Inches(0.68), Inches(10), Inches(0.7))
+    # Main Slide Title
+    title_box = slide.shapes.add_textbox(Inches(0.8), Inches(0.62), Inches(9.5), Inches(0.65))
     tf_t = title_box.text_frame
     tf_t.word_wrap = True
     p_t = tf_t.paragraphs[0]
     p_t.text = title
-    p_t.font.size = Pt(22)
+    p_t.font.size = Pt(21)
     p_t.font.bold = True
-    p_t.font.color.rgb = COLOR_WHITE
+    p_t.font.color.rgb = COLOR_NAVY_DARK
 
-    # SRM Logo top-right
+    # Subtle horizontal dividing rule
+    rule = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.8), Inches(1.3), Inches(11.733), Inches(0.02))
+    rule.fill.solid()
+    rule.fill.fore_color.rgb = COLOR_BORDER
+    rule.line.fill.background()
+
+    # SRM Logo top right
     if os.path.exists(srm_logo_path):
-        s_stream = get_clean_image_stream(srm_logo_path)
-        if s_stream:
-            slide.shapes.add_picture(s_stream, Inches(11.8), Inches(0.4), width=Inches(0.85))
+        stream = get_clean_image_stream(srm_logo_path)
+        if stream:
+            slide.shapes.add_picture(stream, Inches(11.8), Inches(0.35), width=Inches(0.75))
 
-# ------------------------------------------------------------------------------
-# SLIDE 1: TITLE SLIDE
-# ------------------------------------------------------------------------------
-s1 = prs.slides.add_slide(blank_slide_layout)
-set_slide_background(s1, COLOR_NAVY_950)
+def create_angular_card(slide, left, top, width, height, bg_color=COLOR_WHITE, border_color=COLOR_BORDER):
+    # Strictly RECTANGLE with 0 corner radius (NO ROUNDED CORNERS)
+    card = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, top, width, height)
+    card.fill.solid()
+    card.fill.fore_color.rgb = bg_color
+    if border_color:
+        card.line.color.rgb = border_color
+        card.line.width = Pt(1.5)
+    else:
+        card.line.fill.background()
+    return card
 
-# SRM AP Logo center-top
+# ==============================================================================
+# SLIDE 1: TITLE SLIDE (WHITE & RED ANGULAR THEME)
+# ==============================================================================
+s1 = prs.slides.add_slide(blank_layout)
+set_slide_background(s1)
+
+# Left Red Accent Banner (Angular Rectangle)
+left_bar = s1.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0), Inches(0), Inches(0.4), Inches(7.5))
+left_bar.fill.solid()
+left_bar.fill.fore_color.rgb = COLOR_RED_PRIMARY
+left_bar.line.fill.background()
+
+# SRM AP Logo Center-Top
 if os.path.exists(srm_logo_path):
-    s_stream = get_clean_image_stream(srm_logo_path)
-    if s_stream:
-        s1.shapes.add_picture(s_stream, Inches(6.05), Inches(0.7), width=Inches(1.25))
+    stream = get_clean_image_stream(srm_logo_path)
+    if stream:
+        s1.shapes.add_picture(stream, Inches(1.0), Inches(0.8), width=Inches(1.2))
 
-t1_box = s1.shapes.add_textbox(Inches(1.0), Inches(2.1), Inches(11.333), Inches(2.0))
-tf1 = t1_box.text_frame
-tf1.word_wrap = True
-p1_sub = tf1.paragraphs[0]
-p1_sub.text = "CSE 213 — ADVANCED JAVA PROGRAMMING • III SEMESTER B.TECH CSE AI ML F"
-p1_sub.alignment = PP_ALIGN.CENTER
-p1_sub.font.size = Pt(11)
-p1_sub.font.bold = True
-p1_sub.font.color.rgb = COLOR_RED_600
+# Sub-header badge
+b_badge = create_angular_card(s1, Inches(2.4), Inches(0.85), Inches(5.8), Inches(0.38), bg_color=COLOR_RED_LIGHT, border_color=COLOR_RED_PRIMARY)
+b_tf = b_badge.text_frame
+b_tf.margin_left = Inches(0.15)
+b_p = b_tf.paragraphs[0]
+b_p.text = "SRM UNIVERSITY – AP • DEPARTMENT OF COMPUTER SCIENCE & ENGINEERING"
+b_p.font.size = Pt(8.5)
+b_p.font.bold = True
+b_p.font.color.rgb = COLOR_RED_PRIMARY
 
-p1_title = tf1.add_paragraph()
-p1_title.text = "VITALSPHERE"
-p1_title.alignment = PP_ALIGN.CENTER
-p1_title.font.size = Pt(36)
-p1_title.font.bold = True
-p1_title.font.color.rgb = COLOR_WHITE
+# Main Project Title
+t_box = s1.shapes.add_textbox(Inches(1.0), Inches(1.6), Inches(11.5), Inches(1.5))
+tf = t_box.text_frame
+p0 = tf.paragraphs[0]
+p0.text = "VitalSphere"
+p0.font.size = Pt(44)
+p0.font.bold = True
+p0.font.color.rgb = COLOR_RED_PRIMARY
 
-p1_desc = tf1.add_paragraph()
-p1_desc.text = "National Healthcare & Cloud-Synchronized Blood Logistics Coordination Platform"
-p1_desc.alignment = PP_ALIGN.CENTER
-p1_desc.font.size = Pt(16)
-p1_desc.font.color.rgb = COLOR_SLATE_400
+p1 = tf.add_paragraph()
+p1.text = "National Healthcare & Cloud-Synchronized Blood Logistics Platform"
+p1.font.size = Pt(20)
+p1.font.bold = True
+p1.font.color.rgb = COLOR_NAVY_DARK
 
-# Meta table at bottom
-meta_card = s1.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.5), Inches(4.5), Inches(10.333), Inches(2.2))
-meta_card.fill.solid()
-meta_card.fill.fore_color.rgb = COLOR_CARD_BG
-meta_card.line.color.rgb = COLOR_RED_600
+p2 = tf.add_paragraph()
+p2.text = "CSE 213: Advanced Java Programming • B.Tech III Semester (CSE AI ML F) • Academic Year: 2026 – 2027"
+p2.font.size = Pt(11)
+p2.font.color.rgb = COLOR_TEXT_MUTED
 
-mtf = meta_card.text_frame
-mtf.word_wrap = True
-p_team = mtf.paragraphs[0]
-p_team.text = "PROJECT TEAM MEMBERS (SRM UNIVERSITY – AP):"
-p_team.font.bold = True
-p_team.font.size = Pt(12)
-p_team.font.color.rgb = COLOR_RED_600
+# Angular Team Card (Left)
+create_angular_card(s1, Inches(1.0), Inches(3.6), Inches(5.6), Inches(3.2), bg_color=COLOR_BG_LIGHT, border_color=COLOR_BORDER)
+# Accent top bar for card
+top_strip_left = s1.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(1.0), Inches(3.6), Inches(5.6), Inches(0.08))
+top_strip_left.fill.solid()
+top_strip_left.fill.fore_color.rgb = COLOR_RED_PRIMARY
+top_strip_left.line.fill.background()
 
-p_members = mtf.add_paragraph()
-p_members.text = "• P. Abhishek Paul (AP25110071316) — Team Lead & Cloud Architect\n• K. Nithien (AP25110070134) — Desktop Client & Swing UI Developer\n• Shaik Hasnain (AP25110070228) — Backend Logic & Verification Lead"
-p_members.font.size = Pt(11.5)
-p_members.font.color.rgb = COLOR_WHITE
+box_team = s1.shapes.add_textbox(Inches(1.2), Inches(3.8), Inches(5.2), Inches(2.8))
+tf_tm = box_team.text_frame
+p = tf_tm.paragraphs[0]
+p.text = "PROJECT AUTHORS & RESPONSIBILITIES"
+p.font.size = Pt(11)
+p.font.bold = True
+p.font.color.rgb = COLOR_RED_PRIMARY
 
-p_fac = mtf.add_paragraph()
-p_fac.text = "FACULTY GUIDE: Dr. Srikanth Lukka, Assistant Professor, Department of CSE"
-p_fac.font.bold = True
-p_fac.font.size = Pt(11.5)
-p_fac.font.color.rgb = RGBColor(56, 189, 248)
+members = [
+    ("1. P. Abhishek Paul (AP25110071316)", "Lead Architect, Cloud Synchronization & Data Models"),
+    ("2. K. Nithien (AP25110070134)", "Desktop Client Engineering & Custom Swing GUI"),
+    ("3. Shaik Hasnain (AP25110070228)", "Backend Concurrency & Clinical Verification Pipeline")
+]
+for m_title, m_role in members:
+    pm = tf_tm.add_paragraph()
+    pm.text = m_title
+    pm.font.size = Pt(10.5)
+    pm.font.bold = True
+    pm.font.color.rgb = COLOR_NAVY_DARK
+    pr = tf_tm.add_paragraph()
+    pr.text = "    " + m_role
+    pr.font.size = Pt(9)
+    pr.font.color.rgb = COLOR_TEXT_MUTED
 
-# ------------------------------------------------------------------------------
-# SLIDE 2: PROBLEM STATEMENT & MOTIVATION
-# ------------------------------------------------------------------------------
-s2 = prs.slides.add_slide(blank_slide_layout)
-set_slide_background(s2, COLOR_NAVY_950)
-add_header(s2, "The Critical Problem: Life-Threatening Blood Coordination Delays")
+# Angular Faculty Card (Right)
+create_angular_card(s1, Inches(7.0), Inches(3.6), Inches(5.3), Inches(3.2), bg_color=COLOR_BG_LIGHT, border_color=COLOR_BORDER)
+top_strip_right = s1.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(7.0), Inches(3.6), Inches(5.3), Inches(0.08))
+top_strip_right.fill.solid()
+top_strip_right.fill.fore_color.rgb = COLOR_NAVY_DARK
+top_strip_right.line.fill.background()
 
-cards_data_s2 = [
-    ("Fragmented Stock Silos", "Blood banks maintain disconnected, manual records. Patients spend hours calling hospitals blindly during emergency trauma surgeries, wasting vital minutes.", COLOR_RED_600),
-    ("Unverified Donor Lists", "Informal social media lists register citizen volunteers without medical clearance. Over 35% are rejected on-site due to low Hb (<12.5) or inadequate cooldown rest (<90 days).", COLOR_RED_600),
-    ("Requisition Proof Deficit", "Emergency blood calls often lack authentic hospital proof. This leads to chaotic rumors and panic without physician-verified transfusion requisition slips.", COLOR_RED_600),
-    ("High-Latency Coordination", "Finding a donor is only half the battle. Coordination fails due to broken forms, outdated phone numbers, login blockers, and lack of real-time attendant alerts.", COLOR_RED_600)
+box_fac = s1.shapes.add_textbox(Inches(7.2), Inches(3.8), Inches(4.9), Inches(2.8))
+tf_fac = box_fac.text_frame
+pf = tf_fac.paragraphs[0]
+pf.text = "FACULTY SUPERVISION & INSTITUTION"
+pf.font.size = Pt(11)
+pf.font.bold = True
+pf.font.color.rgb = COLOR_NAVY_DARK
+
+fac_details = [
+    ("Faculty Guide:", "Dr. Srikanth Lukka"),
+    ("Designation:", "Assistant Professor"),
+    ("Department:", "Department of Computer Science & Engineering"),
+    ("School:", "School of Engineering and Sciences"),
+    ("University:", "SRM UNIVERSITY – AP, ANDHRA PRADESH"),
+    ("Campus:", "Neerukonda, Mangalagiri Mandal, Guntur – 522 240")
+]
+for k, v in fac_details:
+    pkv = tf_fac.add_paragraph()
+    pkv.text = f"{k} {v}"
+    pkv.font.size = Pt(9.5)
+    if k in ["Faculty Guide:", "University:"]:
+        pkv.font.bold = True
+        pkv.font.color.rgb = COLOR_NAVY_DARK
+    else:
+        pkv.font.color.rgb = COLOR_TEXT_MUTED
+
+# ==============================================================================
+# SLIDE 2: EXECUTIVE OVERVIEW & PROBLEM STATEMENT
+# ==============================================================================
+s2 = prs.slides.add_slide(blank_layout)
+set_slide_background(s2)
+add_slide_header(s2, "Executive Overview: The Blood Supply Deficit in India", "PROBLEM STATEMENT & CLINICAL MOTIVATION")
+
+# 3 Metric Cards Across Top (Angular)
+metrics = [
+    ("1.2M+ Units", "Annual National Blood Shortage", "India suffers from an acute deficit of voluntary units, severely impacting emergency trauma care.", COLOR_RED_PRIMARY),
+    ("60 Minutes", "The 'Golden Hour' Window", "Trauma and obstetric cases require immediate component transfusion before irreversible hemorrhagic shock.", COLOR_NAVY_DARK),
+    ("Zero Visibility", "Fragmented Logistics Silos", "Blood banks track inventories on local spreadsheets with zero real-time inter-hospital synchronization.", COLOR_RED_DARK)
 ]
 
-for idx, (title, desc, col) in enumerate(cards_data_s2):
-    x = Inches(0.8 + (idx * 2.95))
-    card = s2.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x, Inches(1.8), Inches(2.8), Inches(4.8))
-    card.fill.solid()
-    card.fill.fore_color.rgb = COLOR_CARD_BG
-    card.line.color.rgb = col
-    
-    tf = card.text_frame
-    tf.word_wrap = True
-    p_num = tf.paragraphs[0]
-    p_num.text = f"0{idx+1}"
-    p_num.font.bold = True
-    p_num.font.size = Pt(28)
-    p_num.font.color.rgb = col
-    
+for i, (val, title, desc, color) in enumerate(metrics):
+    card = create_angular_card(s2, Inches(0.8 + i * 4.0), Inches(1.6), Inches(3.7), Inches(2.2), bg_color=COLOR_BG_LIGHT, border_color=COLOR_BORDER)
+    # colored top bar
+    bar = s2.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.8 + i * 4.0), Inches(1.6), Inches(3.7), Inches(0.06))
+    bar.fill.solid()
+    bar.fill.fore_color.rgb = color
+    bar.line.fill.background()
+
+    tb = s2.shapes.add_textbox(Inches(1.0 + i * 4.0), Inches(1.8), Inches(3.3), Inches(1.8))
+    tf = tb.text_frame
+    p_v = tf.paragraphs[0]
+    p_v.text = val
+    p_v.font.size = Pt(26)
+    p_v.font.bold = True
+    p_v.font.color.rgb = color
+
     p_t = tf.add_paragraph()
     p_t.text = title
+    p_t.font.size = Pt(11)
     p_t.font.bold = True
-    p_t.font.size = Pt(14)
-    p_t.font.color.rgb = COLOR_WHITE
-    
+    p_t.font.color.rgb = COLOR_NAVY_DARK
+
     p_d = tf.add_paragraph()
     p_d.text = desc
-    p_d.font.size = Pt(11)
-    p_d.font.color.rgb = COLOR_SLATE_400
+    p_d.font.size = Pt(9)
+    p_d.font.color.rgb = COLOR_TEXT_MUTED
 
-# ------------------------------------------------------------------------------
-# SLIDE 3: THE VITALSPHERE SOLUTION
-# ------------------------------------------------------------------------------
-s3 = prs.slides.add_slide(blank_slide_layout)
-set_slide_background(s3, COLOR_NAVY_950)
-add_header(s3, "The VitalSphere Solution: Dual-Platform Coordination Network")
+# 2 Columns for Existing Limitations vs VitalSphere Solution (Angular)
+c_left = create_angular_card(s2, Inches(0.8), Inches(4.1), Inches(5.7), Inches(2.9), bg_color=COLOR_WHITE, border_color=COLOR_RED_PRIMARY)
+tb_l = s2.shapes.add_textbox(Inches(1.0), Inches(4.2), Inches(5.3), Inches(2.6))
+tf_l = tb_l.text_frame
+p_lh = tf_l.paragraphs[0]
+p_lh.text = "CURRENT SYSTEM FLAWS (LEGACY PROCESS)"
+p_lh.font.size = Pt(11)
+p_lh.font.bold = True
+p_lh.font.color.rgb = COLOR_RED_PRIMARY
 
-s3_features = [
-    ("Native Java Desktop Client", "Engineered in Java 21 Swing/AWT. Full Medical Officer Clearance Console, Keychain login, and direct OS-level Desktop file inspection for statutory certificates."),
-    ("Cloud-Edge Web Portal", "Dual PC and mobile experience with real-time stock matrix, zero-stale cache-control headers, and floating pill navigation. 100% accessible anywhere without installation."),
-    ("Statutory Pre-Screening", "Enforces National Blood Transfusion Council (NBTC) clinical standards: Hb >= 12.5 g/dL and Rest >= 90 days. Every voluntary donor is certified by a Medical Officer."),
-    ("Instant Attendant Dispatch", "1-Click 'Donate' action triggers immediate real-time tele-notification to the patient's family, hospital desk, and live Notification Center without login barriers.")
+flaws = [
+    "Unverified volunteer registrations with no medical documentation",
+    "Premature donations bypassing the statutory 90-day cooldown interval",
+    "Relatives forced to make frantic manual phone calls and social media pleas",
+    "Zero digital audit trail for medical fitness or pathology proof documents"
+]
+for f in flaws:
+    p = tf_l.add_paragraph()
+    p.text = "• " + f
+    p.font.size = Pt(9.5)
+    p.font.color.rgb = COLOR_TEXT_MAIN
+
+c_right = create_angular_card(s2, Inches(6.8), Inches(4.1), Inches(5.7), Inches(2.9), bg_color=COLOR_BG_LIGHT, border_color=COLOR_BORDER)
+tb_r = s2.shapes.add_textbox(Inches(7.0), Inches(4.2), Inches(5.3), Inches(2.6))
+tf_r = tb_r.text_frame
+p_rh = tf_r.paragraphs[0]
+p_rh.text = "THE VITALSPHERE SOLUTION"
+p_rh.font.size = Pt(11)
+p_rh.font.bold = True
+p_rh.font.color.rgb = COLOR_NAVY_DARK
+
+sol = [
+    "Synchronized Java 21 desktop client + cloud-connected progressive web portal",
+    "Automated physiological screening: Hb >= 12.5 g/dL and resting days >= 90",
+    "Mandatory digital inspection of doctor-signed certificates and lab proofs",
+    "Instant telephonic & notification dispatch matching voluntary donors in seconds"
+]
+for s in sol:
+    p = tf_r.add_paragraph()
+    p.text = "✓ " + s
+    p.font.size = Pt(9.5)
+    p.font.bold = True
+    p.font.color.rgb = COLOR_NAVY_DARK
+
+# ==============================================================================
+# SLIDE 3: SYSTEM TOPOLOGY & ARCHITECTURE ILLUSTRATION
+# ==============================================================================
+s3 = prs.slides.add_slide(blank_layout)
+set_slide_background(s3)
+add_slide_header(s3, "System Topology: Synchronized Dual-Platform Ecosystem", "SYSTEM ARCHITECTURE & CLOUD DATA PIPELINE")
+
+# Angular Diagram Boxes
+nodes = [
+    ("WEB CLIENT & MOBILE PWA", "HTML5 • Modern Vanilla JS • CSS3", "Public registration, stock telemetry & emergency blood requests", Inches(0.8), Inches(1.8), COLOR_RED_PRIMARY),
+    ("FIREBASE CLOUD INFRASTRUCTURE", "Firestore • Cloud Storage • CDN", "Encrypted document archive, REST endpoints & ETag caching", Inches(4.9), Inches(1.8), COLOR_NAVY_DARK),
+    ("JAVA 21 DESKTOP APPLICATION", "Java Swing • AWT • Concurrency", "Medical officer clearance desk, donor roster & local cache", Inches(9.0), Inches(1.8), COLOR_RED_DARK)
 ]
 
-for idx, (ftitle, fdesc) in enumerate(s3_features):
-    y = Inches(1.8 + (idx * 1.25))
-    row_card = s3.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), y, Inches(11.733), Inches(1.1))
-    row_card.fill.solid()
-    row_card.fill.fore_color.rgb = COLOR_CARD_BG
-    row_card.line.color.rgb = COLOR_SLATE_700
-    
-    rtf = row_card.text_frame
-    rtf.word_wrap = True
-    rp1 = rtf.paragraphs[0]
-    rp1.text = ftitle.upper()
-    rp1.font.bold = True
-    rp1.font.size = Pt(12)
-    rp1.font.color.rgb = COLOR_RED_600
-    
-    rp2 = rtf.add_paragraph()
-    rp2.text = fdesc
-    rp2.font.size = Pt(10.5)
-    rp2.font.color.rgb = COLOR_WHITE
+for title, tech, desc, left, top, color in nodes:
+    card = create_angular_card(s3, left, top, Inches(3.5), Inches(2.3), bg_color=COLOR_BG_LIGHT, border_color=COLOR_BORDER)
+    bar = s3.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, top, Inches(3.5), Inches(0.08))
+    bar.fill.solid()
+    bar.fill.fore_color.rgb = color
+    bar.line.fill.background()
 
-# ------------------------------------------------------------------------------
-# SLIDE 4: SYSTEM ARCHITECTURE & DATA FLOW
-# ------------------------------------------------------------------------------
-s4 = prs.slides.add_slide(blank_slide_layout)
-set_slide_background(s4, COLOR_NAVY_950)
-add_header(s4, "System Architecture: Distributed, Resilient Multi-Client Topology")
+    tb = s3.shapes.add_textbox(left + Inches(0.2), top + Inches(0.2), Inches(3.1), Inches(1.8))
+    tf = tb.text_frame
+    p_t = tf.paragraphs[0]
+    p_t.text = title
+    p_t.font.size = Pt(11)
+    p_t.font.bold = True
+    p_t.font.color.rgb = color
 
-arch_boxes = [
-    ("NATIVE DESKTOP CLIENT\n(Java 21 / Swing / AWT)", "• Standalone executable JAR\n• Event Dispatch Thread (EDT)\n• Anti-aliased 2D rendering\n• Local resilient fallback cache\n• OS Desktop API file viewer", Inches(0.8)),
-    ("CLOUD BACKEND & EDGE CDN\n(Google Firebase / REST)", "• Global edge CDN distribution\n• REST version validator\n• No-cache revalidation headers\n• Static asset delivery engine\n• Zero-latency JSON payloads", Inches(4.8)),
-    ("RESPONSIVE WEB PORTAL\n(Desktop & Mobile Clients)", "• Responsive dual HTML5/CSS\n• Self-contained fallback generators\n• Pan-India State/District logic\n• Real-time Notification Center\n• Floating pill mobile dock", Inches(8.8))
+    p_tc = tf.add_paragraph()
+    p_tc.text = tech
+    p_tc.font.size = Pt(8.5)
+    p_tc.font.bold = True
+    p_tc.font.color.rgb = COLOR_NAVY_DARK
+
+    p_d = tf.add_paragraph()
+    p_d.text = desc
+    p_d.font.size = Pt(9)
+    p_d.font.color.rgb = COLOR_TEXT_MUTED
+
+# Architecture Connection Flow Details
+flow_card = create_angular_card(s3, Inches(0.8), Inches(4.5), Inches(11.733), Inches(2.4), bg_color=COLOR_WHITE, border_color=COLOR_BORDER)
+tb_fl = s3.shapes.add_textbox(Inches(1.0), Inches(4.6), Inches(11.3), Inches(2.1))
+tf_fl = tb_fl.text_frame
+p_fh = tf_fl.paragraphs[0]
+p_fh.text = "DATA SYNCHRONIZATION & CONCURRENCY ARCHITECTURE"
+p_fh.font.size = Pt(11)
+p_fh.font.bold = True
+p_fh.font.color.rgb = COLOR_RED_PRIMARY
+
+points = [
+    "Bi-directional Synchronization: Web submissions immediately propagate to cloud endpoints, ingested by Java client via ScheduledExecutorService polling.",
+    "Non-Blocking Concurrency: Background HTTP GET requests run on dedicated daemon threads, preventing Java Swing Event Dispatch Thread (EDT) starvation.",
+    "Aadhaar Privacy Redaction: Government identity numbers are masked on client ingestion (XXXX-XXXX-1234) ensuring complete statutory compliance.",
+    "Local Fail-Safe Cache: If network disconnection occurs, the Java Swing client serves cached records from local JVM memory with zero interruption."
+]
+for pt in points:
+    p = tf_fl.add_paragraph()
+    p.text = "→ " + pt
+    p.font.size = Pt(9.5)
+    p.font.color.rgb = COLOR_TEXT_MAIN
+
+# ==============================================================================
+# SLIDE 4: WEB PLATFORM INTERFACE & LIVE TELEMETRY
+# ==============================================================================
+s4 = prs.slides.add_slide(blank_layout)
+set_slide_background(s4)
+add_slide_header(s4, "Web Platform: Public Portal & Real-Time Stock Telemetry", "WEB APPLICATION ARCHITECTURE")
+
+# Embed Screenshot of Web Hero
+if os.path.exists("target/screenshots/web_hero.png"):
+    stream = get_clean_image_stream("target/screenshots/web_hero.png")
+    if stream:
+        s4.shapes.add_picture(stream, Inches(0.8), Inches(1.6), width=Inches(7.2))
+        # Angular frame
+        frame = s4.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.8), Inches(1.6), Inches(7.2), Inches(4.6))
+        frame.fill.background()
+        frame.line.color.rgb = COLOR_BORDER
+        frame.line.width = Pt(1.5)
+
+# Right Side Card with Feature Analysis
+create_angular_card(s4, Inches(8.3), Inches(1.6), Inches(4.2), Inches(5.3), bg_color=COLOR_BG_LIGHT, border_color=COLOR_BORDER)
+top_bar = s4.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8.3), Inches(1.6), Inches(4.2), Inches(0.08))
+top_bar.fill.solid()
+top_bar.fill.fore_color.rgb = COLOR_RED_PRIMARY
+top_bar.line.fill.background()
+
+tb_wf = s4.shapes.add_textbox(Inches(8.5), Inches(1.8), Inches(3.8), Inches(4.9))
+tf_wf = tb_wf.text_frame
+p_wh = tf_wf.paragraphs[0]
+p_wh.text = "WEB CAPABILITIES & FEATURES"
+p_wh.font.size = Pt(11)
+p_wh.font.bold = True
+p_wh.font.color.rgb = COLOR_RED_PRIMARY
+
+w_feats = [
+    ("Live Stock Counter:", "Real-time visualization of units available across all 8 blood groups (A+, B+, O-, etc.)."),
+    ("Universal Search:", "Instant filtering across state, district, hospital, and blood group parameters."),
+    ("Donor Portal:", "Self-service onboarding with document upload for doctor-signed fitness certificates."),
+    ("Zero-Jank Scrolling:", "Dynamic sticky header offset navigation preventing overlap bugs."),
+    ("Cloud Sync Status:", "Visual badge confirming connection with national transfusion clearinghouse.")
+]
+for k, v in w_feats:
+    p = tf_wf.add_paragraph()
+    p.text = k
+    p.font.size = Pt(9.5)
+    p.font.bold = True
+    p.font.color.rgb = COLOR_NAVY_DARK
+    pv = tf_wf.add_paragraph()
+    pv.text = v
+    pv.font.size = Pt(8.5)
+    pv.font.color.rgb = COLOR_TEXT_MUTED
+
+# ==============================================================================
+# SLIDE 5: MOBILE PROGRESSIVE EXPERIENCE & EMERGENCY WORKFLOW
+# ==============================================================================
+s5 = prs.slides.add_slide(blank_layout)
+set_slide_background(s5)
+add_slide_header(s5, "Mobile PWA: On-the-Go Emergency Coordination", "PROGRESSIVE MOBILE INTERFACE")
+
+# Embed Mobile Screenshot
+if os.path.exists("target/screenshots/web_mobile.png"):
+    stream = get_clean_image_stream("target/screenshots/web_mobile.png")
+    if stream:
+        s5.shapes.add_picture(stream, Inches(0.8), Inches(1.6), width=Inches(2.6))
+        frame = s5.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.8), Inches(1.6), Inches(2.6), Inches(5.3))
+        frame.fill.background()
+        frame.line.color.rgb = COLOR_BORDER
+        frame.line.width = Pt(1.5)
+
+# Middle Card: Emergency Request Flow
+create_angular_card(s5, Inches(3.7), Inches(1.6), Inches(4.5), Inches(5.3), bg_color=COLOR_WHITE, border_color=COLOR_BORDER)
+tb_mf = s5.shapes.add_textbox(Inches(3.9), Inches(1.8), Inches(4.1), Inches(4.9))
+tf_mf = tb_mf.text_frame
+p_mh = tf_mf.paragraphs[0]
+p_mh.text = "MOBILE DESIGN HIGHLIGHTS"
+p_mh.font.size = Pt(11)
+p_mh.font.bold = True
+p_mh.font.color.rgb = COLOR_RED_PRIMARY
+
+m_pts = [
+    ("Floating Pill Navigation:", "Ergonomic bottom navigation bar with crisp SVG vector icons (no emojis)."),
+    ("Fullscreen Group Directory:", "Tapping any blood group chip opens a focused modal with donor tele-coordination."),
+    ("Touch-Optimized Tele-Call:", "Direct dialer links (tel:+91...) connecting attendants with donors in one tap."),
+    ("In-App Notification Hub:", "Emergency request alert banners with direct drill-down routing.")
+]
+for k, v in m_pts:
+    p = tf_mf.add_paragraph()
+    p.text = k
+    p.font.size = Pt(9.5)
+    p.font.bold = True
+    p.font.color.rgb = COLOR_NAVY_DARK
+    pv = tf_mf.add_paragraph()
+    pv.text = v
+    pv.font.size = Pt(8.5)
+    pv.font.color.rgb = COLOR_TEXT_MUTED
+
+# Right Card: Form & Document Upload Screenshot or Details
+if os.path.exists("target/screenshots/web_emergency_req.png"):
+    stream_req = get_clean_image_stream("target/screenshots/web_emergency_req.png")
+    if stream_req:
+        s5.shapes.add_picture(stream_req, Inches(8.5), Inches(1.6), width=Inches(4.0))
+        frame = s5.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8.5), Inches(1.6), Inches(4.0), Inches(5.3))
+        frame.fill.background()
+        frame.line.color.rgb = COLOR_BORDER
+        frame.line.width = Pt(1.5)
+
+# ==============================================================================
+# SLIDE 6: DESKTOP CLIENT — VERIFIED DONOR ROSTER
+# ==============================================================================
+s6 = prs.slides.add_slide(blank_layout)
+set_slide_background(s6)
+add_slide_header(s6, "Desktop Client: Verified Donor Roster & Health Status", "JAVA SWING DESKTOP ARCHITECTURE")
+
+if os.path.exists("target/screenshots/java_client_donors.png"):
+    stream = get_clean_image_stream("target/screenshots/java_client_donors.png")
+    if stream:
+        s6.shapes.add_picture(stream, Inches(0.8), Inches(1.6), width=Inches(7.8))
+        frame = s6.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.8), Inches(1.6), Inches(7.8), Inches(5.0))
+        frame.fill.background()
+        frame.line.color.rgb = COLOR_BORDER
+        frame.line.width = Pt(1.5)
+
+# Technical Card
+create_angular_card(s6, Inches(8.9), Inches(1.6), Inches(3.6), Inches(5.0), bg_color=COLOR_BG_LIGHT, border_color=COLOR_BORDER)
+tb_sc = s6.shapes.add_textbox(Inches(9.1), Inches(1.8), Inches(3.2), Inches(4.6))
+tf_sc = tb_sc.text_frame
+p_sh = tf_sc.paragraphs[0]
+p_sh.text = "SWING IMPLEMENTATION"
+p_sh.font.size = Pt(11)
+p_sh.font.bold = True
+p_sh.font.color.rgb = COLOR_RED_PRIMARY
+
+s_pts = [
+    ("JTable & DefaultTableModel:", "High-throughput tabular grid displaying 256+ verified records with sub-millisecond scrolling."),
+    ("Custom Cell Renderer:", "Extends DefaultTableCellRenderer to paint color-coded blood group tags and health badges."),
+    ("Aadhaar Data Masking:", "Redacts sensitive identity numbers to ensure patient privacy compliance."),
+    ("Dynamic Filter Pipeline:", "Regex-based row filtering matching names, cities, or blood groups on keystroke.")
+]
+for k, v in s_pts:
+    p = tf_sc.add_paragraph()
+    p.text = k
+    p.font.size = Pt(9.5)
+    p.font.bold = True
+    p.font.color.rgb = COLOR_NAVY_DARK
+    pv = tf_sc.add_paragraph()
+    pv.text = v
+    pv.font.size = Pt(8.5)
+    pv.font.color.rgb = COLOR_TEXT_MUTED
+
+# ==============================================================================
+# SLIDE 7: DESKTOP CLIENT — EMERGENCY RECIPIENTS & ALLOCATION
+# ==============================================================================
+s7 = prs.slides.add_slide(blank_layout)
+set_slide_background(s7)
+add_slide_header(s7, "Desktop Client: Emergency Recipients & Transfusion Queue", "CRITICAL PATIENT ALLOCATION")
+
+if os.path.exists("target/screenshots/java_client_recipients.png"):
+    stream = get_clean_image_stream("target/screenshots/java_client_recipients.png")
+    if stream:
+        s7.shapes.add_picture(stream, Inches(0.8), Inches(1.6), width=Inches(7.8))
+        frame = s7.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.8), Inches(1.6), Inches(7.8), Inches(5.0))
+        frame.fill.background()
+        frame.line.color.rgb = COLOR_BORDER
+        frame.line.width = Pt(1.5)
+
+create_angular_card(s7, Inches(8.9), Inches(1.6), Inches(3.6), Inches(5.0), bg_color=COLOR_BG_LIGHT, border_color=COLOR_BORDER)
+tb_rc = s7.shapes.add_textbox(Inches(9.1), Inches(1.8), Inches(3.2), Inches(4.6))
+tf_rc = tb_rc.text_frame
+p_rh = tf_rc.paragraphs[0]
+p_rh.text = "ALLOCATION LOGIC"
+p_rh.font.size = Pt(11)
+p_rh.font.bold = True
+p_rh.font.color.rgb = COLOR_NAVY_DARK
+
+r_pts = [
+    ("Urgency Prioritization:", "Critical ICU and surgical cases flagged with high-visibility badges for immediate triage."),
+    ("Component Calculation:", "Translates requested units into millilitre volume requirements (350 ml/unit standard PRBC)."),
+    ("Direct Donor Pairing:", "Attendants can trigger instant donor alerts directly from the desktop workstation."),
+    ("Real-Time Status:", "Switches states dynamically from LOOKING_FOR_DONORS to ALLOCATED upon commitment.")
+]
+for k, v in r_pts:
+    p = tf_rc.add_paragraph()
+    p.text = k
+    p.font.size = Pt(9.5)
+    p.font.bold = True
+    p.font.color.rgb = COLOR_NAVY_DARK
+    pv = tf_rc.add_paragraph()
+    pv.text = v
+    pv.font.size = Pt(8.5)
+    pv.font.color.rgb = COLOR_TEXT_MUTED
+
+# ==============================================================================
+# SLIDE 8: MEDICAL OFFICER CLEARANCE DESK & DOCUMENT INSPECTION
+# ==============================================================================
+s8 = prs.slides.add_slide(blank_layout)
+set_slide_background(s8)
+add_slide_header(s8, "Medical Officer Clearance Desk: Statutory Document Verification", "CLINICAL AUDIT & COMPLIANCE")
+
+if os.path.exists("target/screenshots/java_client_clearance.png"):
+    stream = get_clean_image_stream("target/screenshots/java_client_clearance.png")
+    if stream:
+        s8.shapes.add_picture(stream, Inches(0.8), Inches(1.6), width=Inches(7.8))
+        frame = s8.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.8), Inches(1.6), Inches(7.8), Inches(5.0))
+        frame.fill.background()
+        frame.line.color.rgb = COLOR_BORDER
+        frame.line.width = Pt(1.5)
+
+create_angular_card(s8, Inches(8.9), Inches(1.6), Inches(3.6), Inches(5.0), bg_color=COLOR_BG_LIGHT, border_color=COLOR_BORDER)
+tb_cl = s8.shapes.add_textbox(Inches(9.1), Inches(1.8), Inches(3.2), Inches(4.6))
+tf_cl = tb_cl.text_frame
+p_ch = tf_cl.paragraphs[0]
+p_ch.text = "VERIFICATION PIPELINE"
+p_ch.font.size = Pt(11)
+p_ch.font.bold = True
+p_ch.font.color.rgb = COLOR_RED_PRIMARY
+
+c_pts = [
+    ("Doctor Certificate Inspection:", "Allows clinical officers to review signed medical fitness reports (PDF / images)."),
+    ("Pathology Lab Card Proof:", "Verifies blood group laboratory tests before activating volunteer status."),
+    ("Manual Officer Approval:", "Two-tier verification ensuring no unqualified donor is enrolled into the public roster."),
+    ("Audit Record Archival:", "Approved files are time-stamped and recorded with administrative officer credentials.")
+]
+for k, v in c_pts:
+    p = tf_cl.add_paragraph()
+    p.text = k
+    p.font.size = Pt(9.5)
+    p.font.bold = True
+    p.font.color.rgb = COLOR_NAVY_DARK
+    pv = tf_cl.add_paragraph()
+    pv.text = v
+    pv.font.size = Pt(8.5)
+    pv.font.color.rgb = COLOR_TEXT_MUTED
+
+# ==============================================================================
+# SLIDE 9: CORE JAVA CONCEPTS & OOP DESIGN
+# ==============================================================================
+s9 = prs.slides.add_slide(blank_layout)
+set_slide_background(s9)
+add_slide_header(s9, "Technical Deep Dive: Core Java Concepts & OOP Implementation", "CSE 213 CURRICULAR ALIGNMENT")
+
+concepts = [
+    ("1. Object-Oriented Domain Models", "Encapsulation & Domain Modeling", "Immutable records and domain classes (DonorRecord, RecipientRecord, BloodStock) encapsulating physiological data with strict getters and validation.", COLOR_RED_PRIMARY),
+    ("2. Java Swing & AWT Architecture", "GUI Components & Renderers", "Extensive use of JFrame, JTabbedPane, JTable, and custom DefaultTableCellRenderer implementations for color-coded badges and icons.", COLOR_NAVY_DARK),
+    ("3. Asynchronous Concurrency", "ScheduledExecutorService & EDT", "Multithreaded background polling via ScheduledExecutorService. Zero UI freezes using SwingUtilities.invokeLater for safe GUI state updates.", COLOR_RED_PRIMARY),
+    ("4. HTTP Networking & REST Client", "java.net.http.HttpClient (Java 21)", "Modern non-blocking HTTP client executing asynchronous GET/POST operations with duration timeouts and JSON serialization.", COLOR_NAVY_DARK)
 ]
 
-for btitle, bdesc, bx in arch_boxes:
-    bshape = s4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, bx, Inches(1.8), Inches(3.7), Inches(4.8))
-    bshape.fill.solid()
-    bshape.fill.fore_color.rgb = COLOR_CARD_BG
-    bshape.line.color.rgb = RGBColor(56, 189, 248)
-    
-    btf = bshape.text_frame
-    btf.word_wrap = True
-    bp1 = btf.paragraphs[0]
-    bp1.text = btitle
-    bp1.font.bold = True
-    bp1.font.size = Pt(13)
-    bp1.font.color.rgb = RGBColor(56, 189, 248)
-    
-    bp2 = btf.add_paragraph()
-    bp2.text = bdesc
-    bp2.font.size = Pt(11)
-    bp2.font.color.rgb = COLOR_WHITE
+for i, (num_title, sub, desc, color) in enumerate(concepts):
+    col = i % 2
+    row = i // 2
+    left = Inches(0.8 + col * 6.0)
+    top = Inches(1.6 + row * 2.7)
 
-# ------------------------------------------------------------------------------
-# SLIDE 5: CORE JAVA CONCEPTS IMPLEMENTED (OOP)
-# ------------------------------------------------------------------------------
-s5 = prs.slides.add_slide(blank_slide_layout)
-set_slide_background(s5, COLOR_NAVY_950)
-add_header(s5, "Core Java Programming Concepts (Mapping to CSE 213 Curriculum)")
+    card = create_angular_card(s9, left, top, Inches(5.7), Inches(2.4), bg_color=COLOR_BG_LIGHT, border_color=COLOR_BORDER)
+    bar = s9.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, top, Inches(5.7), Inches(0.06))
+    bar.fill.solid()
+    bar.fill.fore_color.rgb = color
+    bar.line.fill.background()
 
-oop_concepts = [
-    ("Inheritance", "VitalSphereDesktopClient extends javax.swing.JFrame, orchestrating child panels, custom layout managers, and modal JDialogs in an OOP hierarchy.", "JFrame & JDialog Containment"),
-    ("Encapsulation", "Clinical vitals (Hb levels, rest days, certificate paths) are encapsulated within private data structures and managed through DefaultTableModel interfaces.", "Private State & Table Models"),
-    ("Polymorphism", "Buttons and action listeners implement dynamic behavior through overloaded factories (createStyledButton), computing hover, pressed, and focus paint styles dynamically.", "Factory Methods & State Tints"),
-    ("Abstraction", "Complex OS document interactions are abstracted behind unified openDocumentFileOrDisplay() calls, decoupling platform specifics from GUI controllers.", "Unified System File Bridges")
+    tb = s9.shapes.add_textbox(left + Inches(0.2), top + Inches(0.15), Inches(5.3), Inches(2.0))
+    tf = tb.text_frame
+    p_t = tf.paragraphs[0]
+    p_t.text = num_title
+    p_t.font.size = Pt(12)
+    p_t.font.bold = True
+    p_t.font.color.rgb = color
+
+    p_s = tf.add_paragraph()
+    p_s.text = sub
+    p_s.font.size = Pt(9.5)
+    p_s.font.bold = True
+    p_s.font.color.rgb = COLOR_NAVY_DARK
+
+    p_d = tf.add_paragraph()
+    p_d.text = desc
+    p_d.font.size = Pt(9)
+    p_d.font.color.rgb = COLOR_TEXT_MUTED
+
+# ==============================================================================
+# SLIDE 10: MULTITHREADING, DATA FLOW & CACHING ENGINE
+# ==============================================================================
+s10 = prs.slides.add_slide(blank_layout)
+set_slide_background(s10)
+add_slide_header(s10, "Data Synchronization Engine: Polling, Caching & Fail-Safe State", "CONCURRENCY & DATA FLOW PIPELINE")
+
+# Illustration Flow Cards (Horizontal Pipeline)
+steps = [
+    ("STEP 1", "Scheduled Trigger", "ScheduledExecutorService fires every 15s on daemon pool thread", COLOR_RED_PRIMARY),
+    ("STEP 2", "HTTP REST Request", "java.net.http.HttpClient issues non-blocking GET to Cloud Endpoint", COLOR_NAVY_DARK),
+    ("STEP 3", "JSON Ingestion", "Payload parsed into immutable Java domain records with Aadhaar masking", COLOR_RED_PRIMARY),
+    ("STEP 4", "Swing EDT Dispatch", "SwingUtilities.invokeLater safely pushes table model row updates", COLOR_NAVY_DARK)
 ]
 
-for idx, (title, desc, tag) in enumerate(oop_concepts):
-    col = idx % 2
-    row = idx // 2
-    x = Inches(0.8 + (col * 5.95))
-    y = Inches(1.8 + (row * 2.5))
-    
-    box = s5.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x, y, Inches(5.7), Inches(2.2))
-    box.fill.solid()
-    box.fill.fore_color.rgb = COLOR_CARD_BG
-    box.line.color.rgb = COLOR_RED_600
-    
-    btf = box.text_frame
-    btf.word_wrap = True
-    bp1 = btf.paragraphs[0]
-    bp1.text = f"{title.upper()} — {tag}"
-    bp1.font.bold = True
-    bp1.font.size = Pt(12)
-    bp1.font.color.rgb = COLOR_RED_600
-    
-    bp2 = btf.add_paragraph()
-    bp2.text = desc
-    bp2.font.size = Pt(10.5)
-    bp2.font.color.rgb = COLOR_WHITE
+for i, (st, title, desc, color) in enumerate(steps):
+    left = Inches(0.8 + i * 2.95)
+    card = create_angular_card(s10, left, Inches(1.7), Inches(2.8), Inches(2.3), bg_color=COLOR_BG_LIGHT, border_color=COLOR_BORDER)
+    bar = s10.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, Inches(1.7), Inches(2.8), Inches(0.06))
+    bar.fill.solid()
+    bar.fill.fore_color.rgb = color
+    bar.line.fill.background()
 
-# ------------------------------------------------------------------------------
-# SLIDE 6: MULTITHREADING, CONCURRENCY & GRAPHICS 2D
-# ------------------------------------------------------------------------------
-s6 = prs.slides.add_slide(blank_slide_layout)
-set_slide_background(s6, COLOR_NAVY_950)
-add_header(s6, "Multithreading, Concurrency & Custom Java 2D Graphics")
+    tb = s10.shapes.add_textbox(left + Inches(0.15), Inches(1.9), Inches(2.5), Inches(1.9))
+    tf = tb.text_frame
+    p_s = tf.paragraphs[0]
+    p_s.text = st
+    p_s.font.size = Pt(9)
+    p_s.font.bold = True
+    p_s.font.color.rgb = color
 
-concurrency_items = [
-    ("Event Dispatch Thread (EDT) Safety", "All UI rendering, table updates, and dialog transitions strictly adhere to Swing's single-threaded EDT pipeline. Long-running version checks and remote polling execute on background threads via SwingUtilities.invokeLater(), preventing UI freezes."),
-    ("Custom Anti-Aliased Graphics2D Engine", "Eliminates white-on-white text bugs and jagged edges by overriding paintComponent(). Activates RenderingHints.KEY_ANTIALIASING, calculates mathematically blended color shades on mouse hover, and renders smooth rounded rectangles."),
-    ("Resilient Fallback Memory Cache", "Thread-safe local registries (Map<String, String>) store file paths, 256 pre-cleared donors, and 64 emergency recipients. The client maintains complete operational functionality even when offline."),
-    ("Desktop API OS-Bridge Integration", "Integrates java.awt.Desktop to trigger native operating system handlers, allowing Medical Officers to open and inspect authentic PDF and image certificates in their preferred local document viewer.")
+    p_t = tf.add_paragraph()
+    p_t.text = title
+    p_t.font.size = Pt(11)
+    p_t.font.bold = True
+    p_t.font.color.rgb = COLOR_NAVY_DARK
+
+    p_d = tf.add_paragraph()
+    p_d.text = desc
+    p_d.font.size = Pt(8.5)
+    p_d.font.color.rgb = COLOR_TEXT_MUTED
+
+# Detailed Architecture Table / Breakdown Below
+create_angular_card(s10, Inches(0.8), Inches(4.3), Inches(11.733), Inches(2.6), bg_color=COLOR_WHITE, border_color=COLOR_BORDER)
+tb_df = s10.shapes.add_textbox(Inches(1.0), Inches(4.4), Inches(11.3), Inches(2.3))
+tf_df = tb_df.text_frame
+p_dh = tf_df.paragraphs[0]
+p_dh.text = "RESILIENCE & OFFLINE TOLERANCE GUARANTEES"
+p_dh.font.size = Pt(11)
+p_dh.font.bold = True
+p_dh.font.color.rgb = COLOR_RED_PRIMARY
+
+guarantees = [
+    ("Zero Event Dispatch Thread (EDT) Lockup:", "By isolating network I/O to background executor workers, the Java desktop GUI maintains smooth 60 FPS scrolling and instantaneous response."),
+    ("Local Memory Snapshot (Fail-Safe):", "If the cloud network experiences downtime, the client seamlessly falls back to the in-memory cache, keeping hospital operations uninterrupted."),
+    ("Concurrency Race Condition Prevention:", "Data structures utilize synchronized blocks and CopyOnWriteArrayList structures during model mutation, eliminating ConcurrentModificationException.")
+]
+for k, v in guarantees:
+    p = tf_df.add_paragraph()
+    p.text = k
+    p.font.size = Pt(9.5)
+    p.font.bold = True
+    p.font.color.rgb = COLOR_NAVY_DARK
+    pv = tf_df.add_paragraph()
+    pv.text = v
+    pv.font.size = Pt(8.5)
+    pv.font.color.rgb = COLOR_TEXT_MUTED
+
+# ==============================================================================
+# SLIDE 11: CLINICAL COMPLIANCE & AADHAAR PRIVACY WORKFLOW
+# ==============================================================================
+s11 = prs.slides.add_slide(blank_layout)
+set_slide_background(s11)
+add_slide_header(s11, "Clinical Governance & Statutory Compliance Pipeline", "STATUTORY BLOOD TRANSFUSION PROTOCOLS")
+
+# 3 Pillars (Angular Cards)
+pillars = [
+    ("PHYSIOLOGICAL SCREENING", "Statutory Vital Parameters", [
+        "Hemoglobin threshold: >= 12.5 g/dL (evaluated via micro-cuvette testing)",
+        "Minimum donation cooldown: 90 days required between whole blood donations",
+        "Body weight threshold: Minimum 45 kg required for adult 350 ml donation",
+        "Blood pressure: Systolic 100-140 mmHg, Diastolic 60-90 mmHg"
+    ], COLOR_RED_PRIMARY),
+    ("AADHAAR PRIVACY & REDACTION", "Digital Personal Data Protection", [
+        "Full 12-digit Aadhaar captured during registration for deduplication",
+        "Automated client-side redaction masks leading 8 digits (XXXX-XXXX-1234)",
+        "Unmasked identity strictly accessible only by licensed medical officers",
+        "Prevents identity theft and protects donor personal security"
+    ], COLOR_NAVY_DARK),
+    ("STATUTORY DOCUMENT AUDIT", "NBTC / CDSCO Guidelines", [
+        "Mandatory upload of Registered Physician Medical Fitness Certificate",
+        "Official Blood Grouping Card from licensed Pathology Laboratory",
+        "Hospital Blood Transfusion Requisition Order required for recipients",
+        "Immutable audit log generated upon medical officer clearance"
+    ], COLOR_RED_DARK)
 ]
 
-for idx, (ctitle, cdesc) in enumerate(concurrency_items):
-    y = Inches(1.8 + (idx * 1.25))
-    cbox = s6.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), y, Inches(11.733), Inches(1.1))
-    cbox.fill.solid()
-    cbox.fill.fore_color.rgb = COLOR_CARD_BG
-    cbox.line.color.rgb = RGBColor(56, 189, 248)
-    
-    ctf = cbox.text_frame
-    ctf.word_wrap = True
-    cp1 = ctf.paragraphs[0]
-    cp1.text = ctitle.upper()
-    cp1.font.bold = True
-    cp1.font.size = Pt(12)
-    cp1.font.color.rgb = RGBColor(56, 189, 248)
-    
-    cp2 = ctf.add_paragraph()
-    cp2.text = cdesc
-    cp2.font.size = Pt(10.5)
-    cp2.font.color.rgb = COLOR_WHITE
+for i, (title, sub, items, color) in enumerate(pillars):
+    left = Inches(0.8 + i * 4.0)
+    card = create_angular_card(s11, left, Inches(1.7), Inches(3.7), Inches(5.1), bg_color=COLOR_BG_LIGHT, border_color=COLOR_BORDER)
+    bar = s11.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, Inches(1.7), Inches(3.7), Inches(0.08))
+    bar.fill.solid()
+    bar.fill.fore_color.rgb = color
+    bar.line.fill.background()
 
-# ------------------------------------------------------------------------------
-# SLIDE 7: DATA FETCHING, POLLING & CACHING
-# ------------------------------------------------------------------------------
-s7 = prs.slides.add_slide(blank_slide_layout)
-set_slide_background(s7, COLOR_NAVY_950)
-add_header(s7, "Data Ingestion, Dynamic Matrices & Zero-Stale Caching")
+    tb = s11.shapes.add_textbox(left + Inches(0.2), Inches(1.9), Inches(3.3), Inches(4.7))
+    tf = tb.text_frame
+    p_t = tf.paragraphs[0]
+    p_t.text = title
+    p_t.font.size = Pt(11)
+    p_t.font.bold = True
+    p_t.font.color.rgb = color
 
-s7_columns = [
-    ("Pan-India Geographic Matrix", "• Structured state-to-district dictionaries covering all 28 states and territories.\n• Dynamic cascading dropdowns (donorState -> donorCity).\n• Real-time validation without hardcoded Andhra Pradesh restrictions.", Inches(0.8)),
-    ("Zero-Stale Cloud Invalidation", "• Firebase Hosting Cache-Control:\n  max-age=0, no-cache, no-store, must-revalidate.\n• Script fingerprint query versions.\n• Eradicates Android/iOS stale caching bugs.", Inches(4.8)),
-    ("Resilient Fallback Generators", "• Self-contained synchronous generator initializes 256 donors and 64 recipients inline.\n• Immune to network dropouts or CDN lag.\n• Instant filtering across all 8 blood groups.", Inches(8.8))
+    p_s = tf.add_paragraph()
+    p_s.text = sub
+    p_s.font.size = Pt(9)
+    p_s.font.bold = True
+    p_s.font.color.rgb = COLOR_NAVY_DARK
+
+    for item in items:
+        p_i = tf.add_paragraph()
+        p_i.text = "• " + item
+        p_i.font.size = Pt(8.5)
+        p_i.font.color.rgb = COLOR_TEXT_MAIN
+
+# ==============================================================================
+# SLIDE 12: CONCLUSION, LIVE LINKS & GITHUB REPOSITORY (LAST PAGE)
+# ==============================================================================
+s12 = prs.slides.add_slide(blank_layout)
+set_slide_background(s12)
+add_slide_header(s12, "Project Summary, Live Deployments & Institutional Links", "PROJECT CONCLUSION & CODE REPOSITORY")
+
+# Left Column: Key Achievements
+create_angular_card(s12, Inches(0.8), Inches(1.6), Inches(5.7), Inches(5.2), bg_color=COLOR_BG_LIGHT, border_color=COLOR_BORDER)
+top_left = s12.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.8), Inches(1.6), Inches(5.7), Inches(0.08))
+top_left.fill.solid()
+top_left.fill.fore_color.rgb = COLOR_RED_PRIMARY
+top_left.line.fill.background()
+
+tb_ach = s12.shapes.add_textbox(Inches(1.0), Inches(1.8), Inches(5.3), Inches(4.8))
+tf_ach = tb_ach.text_frame
+p_ah = tf_ach.paragraphs[0]
+p_ah.text = "SUMMARY OF ACCOMPLISHMENTS"
+p_ah.font.size = Pt(12)
+p_ah.font.bold = True
+p_ah.font.color.rgb = COLOR_RED_PRIMARY
+
+achievements = [
+    ("Cross-Platform Parity:", "Successfully unified desktop Java Swing and cloud web technologies into one synchronized platform."),
+    ("Life-Saving Impact:", "Reduces blood procurement latency from several hours down to sub-minute notifications."),
+    ("Pure Java 21 Foundation:", "Exemplifies modern Java concurrency, custom table renderers, and robust OOP principles."),
+    ("Clinical Rigor:", "Integrates doctor certificate review, pathology proof verification, and Aadhaar redaction.")
 ]
+for k, v in achievements:
+    p = tf_ach.add_paragraph()
+    p.text = k
+    p.font.size = Pt(10)
+    p.font.bold = True
+    p.font.color.rgb = COLOR_NAVY_DARK
+    pv = tf_ach.add_paragraph()
+    pv.text = v
+    pv.font.size = Pt(9)
+    pv.font.color.rgb = COLOR_TEXT_MUTED
 
-for h_t, h_d, h_x in s7_columns:
-    col_card = s7.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, h_x, Inches(1.8), Inches(3.7), Inches(4.8))
-    col_card.fill.solid()
-    col_card.fill.fore_color.rgb = COLOR_CARD_BG
-    col_card.line.color.rgb = COLOR_RED_600
-    
-    ctf = col_card.text_frame
-    ctf.word_wrap = True
-    cp1 = ctf.paragraphs[0]
-    cp1.text = h_t.upper()
-    cp1.font.bold = True
-    cp1.font.size = Pt(13)
-    cp1.font.color.rgb = COLOR_RED_600
-    
-    cp2 = ctf.add_paragraph()
-    cp2.text = h_d
-    cp2.font.size = Pt(11)
-    cp2.font.color.rgb = COLOR_WHITE
+# Right Column: Live Links (Strictly requested by User!)
+create_angular_card(s12, Inches(6.8), Inches(1.6), Inches(5.7), Inches(5.2), bg_color=COLOR_WHITE, border_color=COLOR_RED_PRIMARY)
+top_right = s12.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(6.8), Inches(1.6), Inches(5.7), Inches(0.08))
+top_right.fill.solid()
+top_right.fill.fore_color.rgb = COLOR_NAVY_DARK
+top_right.line.fill.background()
 
-# ------------------------------------------------------------------------------
-# SLIDE 8: MEDICAL OFFICER CLEARANCE CONSOLE
-# ------------------------------------------------------------------------------
-s8 = prs.slides.add_slide(blank_slide_layout)
-set_slide_background(s8, COLOR_NAVY_950)
-add_header(s8, "Medical Officer Clearance Console: Statutory Clinical Verification")
+tb_lnk = s12.shapes.add_textbox(Inches(7.0), Inches(1.8), Inches(5.3), Inches(4.8))
+tf_lnk = tb_lnk.text_frame
+p_lh = tf_lnk.paragraphs[0]
+p_lh.text = "LIVE DEPLOYMENT & CODE REPOSITORY"
+p_lh.font.size = Pt(12)
+p_lh.font.bold = True
+p_lh.font.color.rgb = COLOR_NAVY_DARK
 
-clearance_steps = [
-    ("1. Candidate Vitals Inspection", "Review applicant's Full Name, Aadhaar identifier, blood group, and contact information."),
-    ("2. Statutory Criteria Validation", "Checks Hemoglobin level (statutory minimum of 12.5 g/dL) and rest period (minimum 90 days required between donations)."),
-    ("3. Document Preview & Audit", "Inspects uploaded Doctor-signed Fitness Certificates and official Laboratory Blood Group Cards directly."),
-    ("4. Statutory Decision (Approve/Defer)", "Approve: Candidate enters active donor pool. Defer: Temporarily placed on 90-day cooldown rest.")
-]
+# 1. Web Portal Link Box (Angular)
+c_web = create_angular_card(s12, Inches(7.0), Inches(2.3), Inches(5.3), Inches(1.3), bg_color=COLOR_RED_LIGHT, border_color=COLOR_RED_PRIMARY)
+tb_w = s12.shapes.add_textbox(Inches(7.15), Inches(2.35), Inches(5.0), Inches(1.2))
+tf_w = tb_w.text_frame
+p_wt = tf_w.paragraphs[0]
+p_wt.text = "PUBLIC CLOUD WEB PORTAL:"
+p_wt.font.size = Pt(9)
+p_wt.font.bold = True
+p_wt.font.color.rgb = COLOR_RED_PRIMARY
 
-for idx, (stitle, sdesc) in enumerate(clearance_steps):
-    x = Inches(0.8 + (idx * 2.95))
-    step_card = s8.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x, Inches(1.8), Inches(2.8), Inches(4.8))
-    step_card.fill.solid()
-    step_card.fill.fore_color.rgb = COLOR_CARD_BG
-    step_card.line.color.rgb = COLOR_EMERALD_600
-    
-    stf = step_card.text_frame
-    stf.word_wrap = True
-    sp1 = stf.paragraphs[0]
-    sp1.text = stitle
-    sp1.font.bold = True
-    sp1.font.size = Pt(13)
-    sp1.font.color.rgb = COLOR_EMERALD_600
-    
-    sp2 = stf.add_paragraph()
-    sp2.text = sdesc
-    sp2.font.size = Pt(11)
-    sp2.font.color.rgb = COLOR_WHITE
+p_wl = tf_w.add_paragraph()
+p_wl.text = "https://vitalsphere-9351.web.app"
+p_wl.font.size = Pt(13)
+p_wl.font.bold = True
+p_wl.font.color.rgb = COLOR_NAVY_DARK
 
-# ------------------------------------------------------------------------------
-# SLIDE 9: SCREENSHOTS: DESKTOP JAVA CLIENT
-# ------------------------------------------------------------------------------
-s9 = prs.slides.add_slide(blank_slide_layout)
-set_slide_background(s9, COLOR_NAVY_950)
-add_header(s9, "Live Showcase: Native Desktop Java Client Application")
+p_wd = tf_w.add_paragraph()
+p_wd.text = "Live production web deployment with mobile PWA interface"
+p_wd.font.size = Pt(8.5)
+p_wd.font.color.rgb = COLOR_TEXT_MUTED
 
-desktop_img_1 = r"C:/Users/PAUL/.gemini/antigravity/brain/22b50d08-d1d4-476a-b4c6-9e333fb80fb1/.user_uploaded/media_1795518007351_d7c52834.jpg"
-desktop_img_2 = r"C:/Users/PAUL/.gemini/antigravity/brain/22b50d08-d1d4-476a-b4c6-9e333fb80fb1/.user_uploaded/media_1795516901049_b558a926.jpg"
+# 2. GitHub Link Box (Angular)
+c_git = create_angular_card(s12, Inches(7.0), Inches(3.8), Inches(5.3), Inches(1.3), bg_color=COLOR_BG_LIGHT, border_color=COLOR_BORDER)
+tb_g = s12.shapes.add_textbox(Inches(7.15), Inches(3.85), Inches(5.0), Inches(1.2))
+tf_g = tb_g.text_frame
+p_gt = tf_g.paragraphs[0]
+p_gt.text = "GITHUB CODE REPOSITORY:"
+p_gt.font.size = Pt(9)
+p_gt.font.bold = True
+p_gt.font.color.rgb = COLOR_NAVY_DARK
 
-if os.path.exists(desktop_img_1):
-    stream1 = get_clean_image_stream(desktop_img_1)
-    if stream1:
-        s9.shapes.add_picture(stream1, Inches(0.8), Inches(1.8), width=Inches(5.6))
-        c1 = s9.shapes.add_textbox(Inches(0.8), Inches(5.8), Inches(5.6), Inches(0.6))
-        c1.text_frame.paragraphs[0].text = "Swing Main Console: Live Donor Table & Action Controls"
-        c1.text_frame.paragraphs[0].font.size = Pt(11)
-        c1.text_frame.paragraphs[0].font.color.rgb = COLOR_SLATE_400
+p_gl = tf_g.add_paragraph()
+p_gl.text = "https://github.com/savagepaul100/VitalSphere"
+p_gl.font.size = Pt(12)
+p_gl.font.bold = True
+p_gl.font.color.rgb = COLOR_RED_PRIMARY
 
-if os.path.exists(desktop_img_2):
-    stream2 = get_clean_image_stream(desktop_img_2)
-    if stream2:
-        s9.shapes.add_picture(stream2, Inches(6.8), Inches(1.8), width=Inches(5.7))
-        c2 = s9.shapes.add_textbox(Inches(6.8), Inches(6.0), Inches(5.7), Inches(0.6))
-        c2.text_frame.paragraphs[0].text = "Certificate Preview Dialog: Statutory Form-04 & Local File Launcher"
-        c2.text_frame.paragraphs[0].font.size = Pt(11)
-        c2.text_frame.paragraphs[0].font.color.rgb = COLOR_SLATE_400
+p_gd = tf_g.add_paragraph()
+p_gd.text = "Complete Java desktop source code, report docx, PPT, and web assets"
+p_gd.font.size = Pt(8.5)
+p_gd.font.color.rgb = COLOR_TEXT_MUTED
 
-# ------------------------------------------------------------------------------
-# SLIDE 10: SCREENSHOTS: DESKTOP & MOBILE WEB PORTAL
-# ------------------------------------------------------------------------------
-s10 = prs.slides.add_slide(blank_slide_layout)
-set_slide_background(s10, COLOR_NAVY_950)
-add_header(s10, "Live Showcase: Responsive Desktop & Mobile Web Portals")
+# 3. Academic Footer
+tb_foot = s12.shapes.add_textbox(Inches(7.0), Inches(5.3), Inches(5.3), Inches(1.4))
+tf_ft = tb_foot.text_frame
+p_f1 = tf_ft.paragraphs[0]
+p_f1.text = "Department of Computer Science and Engineering"
+p_f1.font.size = Pt(10)
+p_f1.font.bold = True
+p_f1.font.color.rgb = COLOR_NAVY_DARK
 
-web_img_1 = r"C:/Users/PAUL/.gemini/antigravity/brain/22b50d08-d1d4-476a-b4c6-9e333fb80fb1/.user_uploaded/media_1795522689897_4629b506.png"
-web_img_2 = r"C:/Users/PAUL/.gemini/antigravity/brain/22b50d08-d1d4-476a-b4c6-9e333fb80fb1/.user_uploaded/media_1795522830460_3c148eb7.jpg"
+p_f2 = tf_ft.add_paragraph()
+p_f2.text = "School of Engineering and Sciences • SRM University – AP"
+p_f2.font.size = Pt(9.5)
+p_f2.font.color.rgb = COLOR_TEXT_MUTED
 
-if os.path.exists(web_img_1):
-    stream_w1 = get_clean_image_stream(web_img_1)
-    if stream_w1:
-        s10.shapes.add_picture(stream_w1, Inches(0.8), Inches(1.8), width=Inches(6.0))
-        cw1 = s10.shapes.add_textbox(Inches(0.8), Inches(6.4), Inches(6.0), Inches(0.5))
-        cw1.text_frame.paragraphs[0].text = "Desktop Registration: Dynamic Pan-India State & District Selectors"
-        cw1.text_frame.paragraphs[0].font.size = Pt(11)
-        cw1.text_frame.paragraphs[0].font.color.rgb = COLOR_SLATE_400
-
-if os.path.exists(web_img_2):
-    stream_w2 = get_clean_image_stream(web_img_2)
-    if stream_w2:
-        s10.shapes.add_picture(stream_w2, Inches(7.5), Inches(1.8), width=Inches(5.0))
-        cw2 = s10.shapes.add_textbox(Inches(7.5), Inches(6.4), Inches(5.0), Inches(0.5))
-        cw2.text_frame.paragraphs[0].text = "Mobile Portal: Live Stock Grid & Modern Floating Pill Bottom Bar"
-        cw2.text_frame.paragraphs[0].font.size = Pt(11)
-        cw2.text_frame.paragraphs[0].font.color.rgb = COLOR_SLATE_400
-
-# ------------------------------------------------------------------------------
-# SLIDE 11: EMERGENCY TRANSFUSION & ATTENDANT DISPATCH
-# ------------------------------------------------------------------------------
-s11 = prs.slides.add_slide(blank_slide_layout)
-set_slide_background(s11, COLOR_NAVY_950)
-add_header(s11, "Emergency Transfusion Requisition & 1-Click Donor Dispatch")
-
-workflow_cards = [
-    ("Hospital Transfusion Order", "Attendant submits patient Aadhaar, blood group, units needed, and uploads Doctor's Requisition Certificate (.pdf / .png / .jpg)."),
-    ("Instant Network Broadcast", "Requirement is injected into live registries and broadcasts alerts across Desktop & Mobile Notification Centers with click-to-preview routing."),
-    ("1-Click Donor Commitment", "Any citizen donor can click 'Donate' on the patient card. The system marks status as '✓ DONOR FOUND' and verifies donor credentials."),
-    ("Real-Time Attendant Alert", "Dispatches immediate confirmation to the attendant's phone and hospital desk, establishing direct line communication to save a life.")
-]
-
-for idx, (wtitle, wdesc) in enumerate(workflow_cards):
-    y = Inches(1.8 + (idx * 1.25))
-    wcard = s11.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), y, Inches(11.733), Inches(1.1))
-    wcard.fill.solid()
-    wcard.fill.fore_color.rgb = COLOR_CARD_BG
-    wcard.line.color.rgb = COLOR_RED_600
-    
-    wtf = wcard.text_frame
-    wtf.word_wrap = True
-    wp1 = wtf.paragraphs[0]
-    wp1.text = f"STEP {idx+1}: {wtitle.upper()}"
-    wp1.font.bold = True
-    wp1.font.size = Pt(12)
-    wp1.font.color.rgb = COLOR_RED_600
-    
-    wp2 = wtf.add_paragraph()
-    wp2.text = wdesc
-    wp2.font.size = Pt(10.5)
-    wp2.font.color.rgb = COLOR_WHITE
-
-# ------------------------------------------------------------------------------
-# SLIDE 12: TEAM MEMBERS & ROLES
-# ------------------------------------------------------------------------------
-s12 = prs.slides.add_slide(blank_slide_layout)
-set_slide_background(s12, COLOR_NAVY_950)
-add_header(s12, "Team Contributions & Engineering Responsibilities")
-
-team_cards = [
-    ("P. Abhishek Paul", "AP25110071316", "Lead Architect & Cloud Systems",
-     "• Engineered the dual-platform system topology and Firebase edge deployment.\n• Solved mobile browser caching via multi-tier Cache-Control headers.\n• Implemented unblocked Donate tele-dispatch and real-time Notification Center.\n• Designed pan-India dynamic state/district lookup matrices."),
-    ("K. Nithien", "AP25110070134", "Desktop Client & Swing UI Developer",
-     "• Engineered the standalone Java 21 Swing/AWT desktop application.\n• Built custom anti-aliased Graphics2D button renderer preventing color bugs.\n• Developed CampFlow Keychain 1-click credential selector and sign-in toggle.\n• Integrated Desktop API for opening authentic local certificate files."),
-    ("Shaik Hasnain", "AP25110070228", "Data Logic & Verification Lead",
-     "• Implemented statutory NBTC Medical Officer clearance console.\n• Built clinical parameters verification (Hb >= 12.5 g/dL, Rest >= 90 days).\n• Developed Doctor Transfusion Requisition Certificate upload pipeline.\n• Conducted unit testing, thread safety verification, and fat-JAR packaging.")
-]
-
-for idx, (mname, mroll, mrole, mresp) in enumerate(team_cards):
-    x = Inches(0.8 + (idx * 3.95))
-    tcard = s12.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x, Inches(1.8), Inches(3.75), Inches(4.8))
-    tcard.fill.solid()
-    tcard.fill.fore_color.rgb = COLOR_CARD_BG
-    tcard.line.color.rgb = RGBColor(56, 189, 248)
-    
-    ttf = tcard.text_frame
-    ttf.word_wrap = True
-    tp1 = ttf.paragraphs[0]
-    tp1.text = mname
-    tp1.font.bold = True
-    tp1.font.size = Pt(14)
-    tp1.font.color.rgb = COLOR_WHITE
-    
-    tp2 = ttf.add_paragraph()
-    tp2.text = f"{mroll}\n{mrole}"
-    tp2.font.bold = True
-    tp2.font.size = Pt(10.5)
-    tp2.font.color.rgb = RGBColor(56, 189, 248)
-    
-    tp3 = ttf.add_paragraph()
-    tp3.text = f"\n{mresp}"
-    tp3.font.size = Pt(10)
-    tp3.font.color.rgb = COLOR_SLATE_400
-
-# ------------------------------------------------------------------------------
-# SLIDE 13: CONCLUSION & FUTURE ROADMAP
-# ------------------------------------------------------------------------------
-s13 = prs.slides.add_slide(blank_slide_layout)
-set_slide_background(s13, COLOR_NAVY_950)
-add_header(s13, "Conclusion & Future Roadmap")
-
-s13_items = [
-    ("Academic Excellence in Java 21", "Successfully implemented all CSE 213 advanced Java concepts: OOP inheritance, thread-safe memory models, custom 2D vector painting, and Event Dispatch Thread isolation."),
-    ("Measurable Clinical Impact", "Replaces chaotic WhatsApp calls and paper slips with deterministic, certified, real-time blood logistics across hospital surgical units and voluntary citizen donors."),
-    ("Zero-Emoji Clean Vector Standard", "Adheres to rigorous enterprise software standards: replaced all emojis with clean Unicode symbols (✓, ✕, •, →) and crisp scalable vector SVGs across Web and Java GUI."),
-    ("Future Strategic Roadmap", "Planned integration with Government of India e-RaktKosh API, automated SMS/WhatsApp OTP dispatch gateway, and autonomous drone delivery routing for rare Rh-negative blood.")
-]
-
-for idx, (stitle, sdesc) in enumerate(s13_items):
-    y = Inches(1.8 + (idx * 1.25))
-    scard = s13.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), y, Inches(11.733), Inches(1.1))
-    scard.fill.solid()
-    scard.fill.fore_color.rgb = COLOR_CARD_BG
-    scard.line.color.rgb = COLOR_EMERALD_600
-    
-    stf = scard.text_frame
-    stf.word_wrap = True
-    sp1 = stf.paragraphs[0]
-    sp1.text = stitle.upper()
-    sp1.font.bold = True
-    sp1.font.size = Pt(12)
-    sp1.font.color.rgb = COLOR_EMERALD_600
-    
-    sp2 = stf.add_paragraph()
-    sp2.text = sdesc
-    sp2.font.size = Pt(10.5)
-    sp2.font.color.rgb = COLOR_WHITE
-
-# ------------------------------------------------------------------------------
-# SLIDE 14: Q&A / VIVA VOCE
-# ------------------------------------------------------------------------------
-s14 = prs.slides.add_slide(blank_slide_layout)
-set_slide_background(s14, COLOR_NAVY_950)
-
-if os.path.exists(srm_logo_path):
-    stream_end = get_clean_image_stream(srm_logo_path)
-    if stream_end:
-        s14.shapes.add_picture(stream_end, Inches(6.05), Inches(1.2), width=Inches(1.25))
-
-q_box = s14.shapes.add_textbox(Inches(1.0), Inches(2.8), Inches(11.333), Inches(3.0))
-qtf = q_box.text_frame
-qtf.word_wrap = True
-
-qp1 = qtf.paragraphs[0]
-qp1.text = "THANK YOU!"
-qp1.alignment = PP_ALIGN.CENTER
-qp1.font.size = Pt(38)
-qp1.font.bold = True
-qp1.font.color.rgb = COLOR_RED_600
-
-qp2 = qtf.add_paragraph()
-qp2.text = "VitalSphere — National Healthcare & Cloud-Synchronized Blood Logistics Platform"
-qp2.alignment = PP_ALIGN.CENTER
-qp2.font.size = Pt(16)
-qp2.font.color.rgb = COLOR_WHITE
-
-qp3 = qtf.add_paragraph()
-qp3.text = "\nQuestions & Technical Discussion (Viva Voce)"
-qp3.alignment = PP_ALIGN.CENTER
-qp3.font.size = Pt(14)
-qp3.font.bold = True
-qp3.font.color.rgb = RGBColor(56, 189, 248)
-
-qp4 = qtf.add_paragraph()
-qp4.text = "Department of Computer Science and Engineering • SRM University – AP"
-qp4.alignment = PP_ALIGN.CENTER
-qp4.font.size = Pt(11)
-qp4.font.color.rgb = COLOR_SLATE_400
+p_f3 = tf_ft.add_paragraph()
+p_f3.text = "Faculty Guide: Dr. Srikanth Lukka, Assistant Professor"
+p_f3.font.size = Pt(9.5)
+p_f3.font.bold = True
+p_f3.font.color.rgb = COLOR_RED_PRIMARY
 
 prs.save(pptx_path)
-print(f"Presentation successfully generated at: {pptx_path}")
+print(f"Presentation saved successfully: {pptx_path} ({os.path.getsize(pptx_path)} bytes)")
