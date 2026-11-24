@@ -1,5 +1,5 @@
 // Pan-India States and Districts / Major Cities
-export const INDIA_STATES_DATA = {
+var INDIA_STATES_DATA = {
   "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Tirupati", "Kurnool", "Kakinada", "Nellore", "Kadapa", "Anantapur", "Eluru", "Rajahmundry", "Vizianagaram", "Ongole", "Chittoor", "Machilipatnam"],
   "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Karimnagar", "Khammam", "Ramagundam", "Mahabubnagar", "Nalgonda", "Adilabad", "Suryapet"],
   "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Thane", "Nashik", "Aurangabad", "Solapur", "Amravati", "Navi Mumbai", "Kolhapur", "Akola", "Latur"],
@@ -40,7 +40,7 @@ const BLOOD_GROUPS = ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"];
 const ALL_STATES = Object.keys(INDIA_STATES_DATA);
 
 // Generate 256 realistic Pan-India donors
-export const fullDonorsList = [];
+var fullDonorsList = [];
 for (let i = 1; i <= 256; i++) {
   const fn = FIRST_NAMES[i % FIRST_NAMES.length];
   const ln = LAST_NAMES[(i * 3) % LAST_NAMES.length];
@@ -72,17 +72,19 @@ for (let i = 1; i <= 256; i++) {
   });
 }
 
-// Generate 32 recipients across India who want blood
-export const fullRecipientsList = [];
+// Generate 64 recipients across India who want blood
+var fullRecipientsList = [];
 const HOSPITALS = [
   "Apollo Speciality Hospital", "Government General Hospital", "Fortis Healthcare",
   "Manipal Hospital", "AIIMS Hospital", "Care Hospitals", "Narayana Health",
-  "Lilavati Hospital", "Max Super Speciality Hospital", "Red Cross Transfusion Center"
+  "Lilavati Hospital", "Max Super Speciality Hospital", "Red Cross Transfusion Center",
+  "Christian Medical College (CMC)", "Tata Memorial Hospital", "KIMS Super Speciality",
+  "Sir Ganga Ram Hospital", "PGIMER", "JIPMER Regional Blood Center"
 ];
 
 const URGENCIES = ["CRITICAL", "URGENT", "ROUTINE"];
 
-for (let j = 1; j <= 32; j++) {
+for (let j = 1; j <= 64; j++) {
   const pfn = FIRST_NAMES[(j * 2) % FIRST_NAMES.length];
   const pln = LAST_NAMES[(j * 5) % LAST_NAMES.length];
   const bg = BLOOD_GROUPS[(j * 2) % BLOOD_GROUPS.length];
@@ -108,7 +110,7 @@ for (let j = 1; j <= 32; j++) {
     urgency: urg,
     urgencyClass: urg === 'CRITICAL' ? 'status-critical' : (urg === 'URGENT' ? 'status-urgent' : 'status-routine'),
     contact: `+91 97${String(20000000 + (j * 44444)).slice(0, 8)}`,
-    status: j % 3 === 0 ? "ALLOCATED" : "LOOKING_FOR_DONORS"
+    status: j % 4 === 0 ? "ALLOCATED" : "LOOKING_FOR_DONORS"
   });
 }
 

@@ -1067,6 +1067,27 @@
         <div class="k-role-badge" style="color:#f87171; background:rgba(248,113,113,0.15);">CAMP</div>
       </div>
 
+      <!-- Patient Attendants / Recipients -->
+      <div style="font-size:0.68rem; font-weight:800; color:var(--slate-400); text-transform:uppercase; margin:14px 0 6px;">Patient Attendants / Recipients (3)</div>
+
+      <div class="keychain-item-mobile" onclick="selectMobileAccount('attendant.vijay@apollohospitals.org', 'Vijay Kumar (Attendant)', 'RECIPIENT_ATTENDANT')">
+        <div class="k-avatar" style="background:#e11d48;">V</div>
+        <div class="k-info">
+          <div class="k-name">Vijay Kumar (Patient Attendant)</div>
+          <div class="k-mail">attendant.vijay@apollohospitals.org</div>
+        </div>
+        <div class="k-role-badge" style="background:rgba(225,29,72,0.15); color:#fda4af;">ATTENDANT</div>
+      </div>
+
+      <div class="keychain-item-mobile" onclick="selectMobileAccount('attendant.sunita@carehospitals.com', 'Sunita Reddy (Attendant)', 'RECIPIENT_ATTENDANT')">
+        <div class="k-avatar" style="background:#e11d48;">S</div>
+        <div class="k-info">
+          <div class="k-name">Sunita Reddy (Patient Attendant)</div>
+          <div class="k-mail">attendant.sunita@carehospitals.com</div>
+        </div>
+        <div class="k-role-badge" style="background:rgba(225,29,72,0.15); color:#fda4af;">ATTENDANT</div>
+      </div>
+
       <!-- Citizens & Donors -->
       <div style="font-size:0.68rem; font-weight:800; color:var(--slate-400); text-transform:uppercase; margin:14px 0 6px;">Citizen Donors & Patients (5)</div>
 
@@ -1314,12 +1335,43 @@
               <span class="d-loc-pill">🩸 ${r.units}</span>
               <span class="d-fit-pill ${r.urgency === 'CRITICAL' ? 'borderline' : 'fit'}">${r.urgency}</span>
             </div>
-            <a href="tel:${r.contact}" class="btn-call" style="background:var(--navy-900);">
-              <span>📞</span> Contact Attendant (${r.contact})
-            </a>
+            <div style="display:flex; gap:8px; margin-top:10px;">
+              <button onclick="handleMobileDonate('${r.id}')" style="flex:1.2; height:42px; background:#dc2626; color:white; border:none; border-radius:8px; font-weight:800; font-size:0.88rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                <span>🩸</span> Donate
+              </button>
+              <a href="tel:${r.contact}" class="btn-call" style="flex:1; margin-top:0; background:var(--navy-900); text-decoration:none;">
+                <span>📞</span> Attendant
+              </a>
+            </div>
           </div>
         `).join('');
       }
+    };
+
+    window.handleMobileDonate = function(reqId) {
+      const r = (window.fullRecipientsList || []).find(x => x.id === reqId);
+      if (!r) return;
+
+      const confirmed = confirm(
+        `Confirm Voluntary Blood Donation Commitment:\n\n` +
+        `Patient: ${r.patientName}\n` +
+        `Required Group: ${r.bloodGroup}\n` +
+        `Hospital: ${r.hospital}\n` +
+        `Units: ${r.units}\n\n` +
+        `When you click OK, VitalSphere will immediately dispatch a verified donor notification to the patient attendant (${r.contact}).`
+      );
+
+      if (!confirmed) return;
+
+      r.status = 'DONOR FOUND (Coordination in progress)';
+      renderMobileDirectory();
+
+      alert(
+        `✓ SUCCESS: Notification dispatched to ${r.patientName}'s attendant!\n\n` +
+        `Patient Attendant: ${r.contact}\n` +
+        `Hospital Desk: ${r.hospital}\n` +
+        `Thank you for saving a life!`
+      );
     };
 
     window.switchMobileDirectory = function(tab) {

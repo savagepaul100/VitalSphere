@@ -663,8 +663,167 @@
       color: var(--navy-900);
       border-bottom: 1px solid var(--slate-200);
       position: sticky;
-      top: 76px;
+      top: 0; /* FIXED: top was 76px which floated down into content */
       z-index: 10;
+    }
+
+    /* CLEAN MODERN CARD ROW STYLING (Uncluttered, High Legibility) */
+    .clean-list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: white;
+      border: 1px solid var(--slate-200);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+
+    .clean-list-item:hover {
+      border-color: var(--red-600);
+      box-shadow: 0 4px 14px rgba(220, 38, 38, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .clean-list-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex: 1;
+    }
+
+    .clean-reg-badge {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.78rem;
+      background: var(--slate-100);
+      color: var(--navy-800);
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--slate-200);
+    }
+
+    .clean-name-title {
+      font-size: 0.96rem;
+      font-weight: 800;
+      color: var(--navy-900);
+      margin-bottom: 3px;
+    }
+
+    .clean-meta-sub {
+      font-size: 0.78rem;
+      color: var(--slate-500);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    /* NOTIFICATION DROPDOWN PANEL */
+    .notif-dropdown {
+      position: absolute;
+      top: 48px;
+      right: 0;
+      width: 400px;
+      max-height: 520px;
+      background: white;
+      border: 1px solid var(--slate-200);
+      border-radius: 14px;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.22);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: notifSlideDown 0.18s ease-out;
+    }
+
+    @keyframes notifSlideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .notif-header {
+      padding: 14px 18px;
+      background: var(--navy-950);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .notif-tabs {
+      display: flex;
+      background: var(--slate-100);
+      border-bottom: 1px solid var(--slate-200);
+      padding: 6px 12px;
+      gap: 6px;
+    }
+
+    .notif-tab {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--slate-600);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      transition: all 0.12s;
+    }
+
+    .notif-tab.active {
+      background: white;
+      color: var(--navy-900);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .notif-list {
+      flex: 1;
+      overflow-y: auto;
+      max-height: 380px;
+    }
+
+    .notif-item {
+      padding: 12px 16px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      border-bottom: 1px solid var(--slate-100);
+      transition: background 0.12s;
+      cursor: pointer;
+    }
+
+    .notif-item:hover {
+      background: var(--slate-50);
+    }
+
+    .notif-item.unread {
+      background: #f0fdf4;
+      border-left: 3.5px solid var(--emerald-600);
+    }
+
+    .notif-icon-bubble {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    /* FULLSCREEN CANDIDATE CLEARANCE CONSOLE OVERLAY */
+    .authority-fullscreen-overlay {
+      position: fixed;
+      inset: 0;
+      background: #090e1a;
+      z-index: 500;
+      display: none;
+      flex-direction: column;
+      overflow-y: auto;
+      color: white;
     }
 
     .directory-table td {
@@ -870,9 +1029,50 @@
         <a href="#download" class="nav-link">Desktop Java App</a>
       </div>
 
-      <div style="display:flex; gap:10px;">
+      <div style="display:flex; gap:10px; align-items:center;" id="navAuthArea">
         <button class="btn btn-secondary" onclick="openFullscreenDirectory('donors')">View 256 Donors</button>
-        <button class="btn btn-primary" onclick="openLoginModal()">Sign In</button>
+        
+        <!-- Notification Bell (Available for logged-in & guest users) -->
+        <div style="position:relative;">
+          <button id="notifBellBtn" onclick="toggleNotificationPanel()" class="btn btn-secondary" style="padding:6px 12px; display:inline-flex; align-items:center; gap:6px; position:relative; background:white;" title="Notifications & Transfusion Alerts">
+            <span style="font-size:1.05rem;">🔔</span>
+            <span id="notifBadge" style="background:#dc2626; color:white; font-size:0.68rem; font-weight:800; border-radius:10px; padding:1px 6px; display:none;">0</span>
+          </button>
+          
+          <!-- Notification Dropdown Panel -->
+          <div id="notifDropdown" class="notif-dropdown" style="display:none;">
+            <div class="notif-header">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:1.05rem;">🔔</span>
+                <span style="font-weight:800; font-size:0.92rem;">Notification Center</span>
+                <span id="notifUnreadPill" style="font-size:0.7rem; background:#dc2626; padding:2px 7px; border-radius:10px; font-weight:800;">3 Unread</span>
+              </div>
+              <button onclick="markAllNotificationsRead()" style="background:none; border:none; color:#38bdf8; font-size:0.75rem; font-weight:700; cursor:pointer;">Mark All Read</button>
+            </div>
+            <div class="notif-tabs">
+              <button class="notif-tab active" onclick="switchNotifFilter('ALL', this)">All Updates</button>
+              <button class="notif-tab" onclick="switchNotifFilter('DONATION', this)">Donations</button>
+              <button class="notif-tab" onclick="switchNotifFilter('APPROVAL', this)">Approvals</button>
+              <button class="notif-tab" onclick="switchNotifFilter('EMERGENCY', this)">Emergency</button>
+            </div>
+            <div class="notif-list" id="notifItemsContainer">
+              <!-- Dynamically populated -->
+            </div>
+            <div style="padding:8px 14px; background:#f8fafc; border-top:1px solid #e2e8f0; font-size:0.72rem; color:#64748b; text-align:center;">
+              Real-time sync with National Transfusion & Donor Network
+            </div>
+          </div>
+        </div>
+
+        <!-- Auth Toggle: When signed in shows user badge + Sign Out button, when logged out shows Sign In -->
+        <div id="navUserBadge" style="display:none; align-items:center; gap:8px;">
+          <div style="display:flex; flex-direction:column; align-items:flex-end;">
+            <span id="navUserName" style="font-size:0.82rem; font-weight:800; color:var(--navy-900); max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">User</span>
+            <span id="navUserRole" style="font-size:0.68rem; font-weight:700; color:var(--emerald-600);">Active</span>
+          </div>
+          <button class="btn btn-secondary" onclick="executeSignOut()" style="color:#dc2626; border-color:#fca5a5; font-size:0.8rem; padding:6px 12px; font-weight:700;" title="Sign out of current account">Sign Out</button>
+        </div>
+        <button id="navSignInBtn" class="btn btn-primary" onclick="openLoginModal()">Sign In</button>
       </div>
     </div>
   </nav>
@@ -1256,9 +1456,9 @@
 
   </main>
 
-  <!-- Fullscreen Modal for 256 Donors & 32 Recipients -->
+  <!-- Fullscreen Modal for Verified Donors & Recipients (Clean, Modern Drilldown) -->
   <div class="fullscreen-modal" id="fullscreenDirectoryModal">
-    <div class="fullscreen-content">
+    <div class="fullscreen-content" style="max-width:1140px; margin:0 auto; min-height:88vh;">
       <div class="modal-nav">
         <div>
           <h2 style="font-size:1.35rem; font-weight:800; color:var(--navy-900);" id="fsModalHeading">Verified Blood Donors (256 Members)</h2>
@@ -1270,27 +1470,43 @@
             Clinical Status Guide (Hb / Rest)
           </button>
           <div class="tab-switch">
-            <button class="tab-btn active" id="btnTabDonors" onclick="switchDirectoryTab('donors')">Donors (256 Members)</button>
-            <button class="tab-btn" id="btnTabRecipients" onclick="switchDirectoryTab('recipients')">Recipients Who Want Blood (32 Patients)</button>
+            <button class="tab-btn active" id="btnTabDonors" onclick="switchDirectoryTab('donors')">Donors (<span id="tabDonorsCount">256</span>)</button>
+            <button class="tab-btn" id="btnTabRecipients" onclick="switchDirectoryTab('recipients')">Recipients Who Want Blood (<span id="tabRecipientsCount">64</span>)</button>
           </div>
           <button class="btn btn-secondary" onclick="closeFullscreenDirectory()" style="padding:6px 14px;">✕ Close</button>
         </div>
       </div>
 
-      <div style="padding:16px 28px; background:var(--slate-50); border-bottom:1px solid var(--slate-200); display:flex; gap:16px; align-items:center;">
-        <input type="text" id="directoryFilter" placeholder="Filter by name, state, city, or blood group..." style="padding:8px 14px; border:1px solid var(--slate-200); border-radius:6px; font-size:0.85rem; width:340px;" oninput="applyDirectoryFilter()" />
+      <!-- Filter Controls with Clear Spacing -->
+      <div style="padding:14px 28px; background:var(--slate-50); border-bottom:1px solid var(--slate-200); display:flex; gap:16px; align-items:center; justify-content:space-between;">
+        <input type="text" id="directoryFilter" placeholder="Filter by name, registration no, state, city, or blood group..." style="padding:8px 14px; border:1px solid var(--slate-200); border-radius:6px; font-size:0.85rem; width:380px;" oninput="applyDirectoryFilter()" />
         <span id="directoryCountText" style="font-size:0.82rem; font-weight:700; color:var(--navy-800);">Showing 256 verified donors</span>
       </div>
 
-      <div style="overflow-y:auto; flex:1; padding:0 28px 28px;">
-        <table class="directory-table" id="directoryTable">
-          <thead id="directoryTableHeader">
-            <!-- Dynamically populated -->
-          </thead>
-          <tbody id="directoryTableBody">
-            <!-- Dynamically populated -->
-          </tbody>
-        </table>
+      <!-- Clean Card List (NO overlapping table header bugs; first item is 100% visible) -->
+      <div style="overflow-y:auto; flex:1; padding:20px 28px;" id="directoryListContainer">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Drilldown Modal for Donors & Patients -->
+  <div class="fullscreen-modal" id="fsDetailModal" style="display:none; align-items:center; justify-content:center; z-index:1200;">
+    <div style="background:white; border-radius:14px; width:92%; max-width:660px; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 25px 60px rgba(15,23,42,0.35); border:1px solid var(--slate-200); overflow:hidden;">
+      <div class="modal-nav" style="padding:16px 22px; border-bottom:1px solid var(--slate-200); display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <span id="detailModalCategory" style="font-size:0.7rem; font-weight:800; color:var(--red-600); text-transform:uppercase;">Credential File</span>
+          <h3 style="font-size:1.2rem; font-weight:800; color:var(--navy-900);" id="detailModalTitle">Full Profile & Details</h3>
+        </div>
+        <button class="btn btn-secondary" onclick="closeFsDetailModal()" style="padding:6px 14px;">✕ Close</button>
+      </div>
+
+      <div style="flex:1; overflow-y:auto; padding:24px; background:var(--slate-50);" id="detailModalBody">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div style="padding:14px 22px; background:white; border-top:1px solid var(--slate-200); display:flex; justify-content:space-between; align-items:center;" id="detailModalFooter">
+        <!-- Rendered dynamically -->
       </div>
     </div>
   </div>
@@ -1413,13 +1629,51 @@
               <div class="account-badge-role" style="color:#94a3b8; background:rgba(148,163,184,0.1);">DONOR</div>
             </div>
 
+            <div style="padding:10px 14px 2px; font-size:0.68rem; font-weight:800; color:#38bdf8; text-transform:uppercase;">Patient Attendants / Recipients (5)</div>
+
             <div class="keychain-row" onclick="selectKeychainAccount('patient.tarun@vitalsphere.demo', 'Patient@2026', 'RECIPIENT')">
-              <div class="account-avatar" style="background:#475569;">T</div>
+              <div class="account-avatar" style="background:#dc2626;">T</div>
               <div class="account-meta">
-                <div class="acc-name">D. Tarun (Attendant)</div>
+                <div class="acc-name">D. Tarun (Attendant - O- Patient)</div>
                 <div class="acc-mail">patient.tarun@vitalsphere.demo</div>
               </div>
-              <div class="account-badge-role" style="color:#94a3b8; background:rgba(148,163,184,0.1);">RECIPIENT</div>
+              <div class="account-badge-role" style="color:#f87171; background:rgba(220,38,38,0.15);">O- RECIPIENT</div>
+            </div>
+
+            <div class="keychain-row" onclick="selectKeychainAccount('patient.ramesh@vitalsphere.demo', 'Patient@2026', 'RECIPIENT')">
+              <div class="account-avatar" style="background:#0284c7;">R</div>
+              <div class="account-meta">
+                <div class="acc-name">S. Ramesh (Attendant - B+ Patient)</div>
+                <div class="acc-mail">patient.ramesh@vitalsphere.demo</div>
+              </div>
+              <div class="account-badge-role" style="color:#38bdf8; background:rgba(2,132,199,0.15);">B+ RECIPIENT</div>
+            </div>
+
+            <div class="keychain-row" onclick="selectKeychainAccount('patient.kavita@vitalsphere.demo', 'Patient@2026', 'RECIPIENT')">
+              <div class="account-avatar" style="background:#d97706;">K</div>
+              <div class="account-meta">
+                <div class="acc-name">P. Kavita (Attendant - A- Critical ICU)</div>
+                <div class="acc-mail">patient.kavita@vitalsphere.demo</div>
+              </div>
+              <div class="account-badge-role" style="color:#fbbf24; background:rgba(217,119,6,0.15);">A- CRITICAL</div>
+            </div>
+
+            <div class="keychain-row" onclick="selectKeychainAccount('patient.anjali@vitalsphere.demo', 'Patient@2026', 'RECIPIENT')">
+              <div class="account-avatar" style="background:#8b5cf6;">A</div>
+              <div class="account-meta">
+                <div class="acc-name">V. Anjali (Attendant - AB- Surgery)</div>
+                <div class="acc-mail">patient.anjali@vitalsphere.demo</div>
+              </div>
+              <div class="account-badge-role" style="color:#c084fc; background:rgba(139,92,246,0.15);">AB- RECIPIENT</div>
+            </div>
+
+            <div class="keychain-row" onclick="selectKeychainAccount('patient.suresh@vitalsphere.demo', 'Patient@2026', 'RECIPIENT')">
+              <div class="account-avatar" style="background:#059669;">S</div>
+              <div class="account-meta">
+                <div class="acc-name">M. Suresh (Attendant - O+ Emergency)</div>
+                <div class="acc-mail">patient.suresh@vitalsphere.demo</div>
+              </div>
+              <div class="account-badge-role" style="color:#34d399; background:rgba(5,150,105,0.15);">O+ RECIPIENT</div>
             </div>
           </div>
         </div>
@@ -1438,24 +1692,67 @@
     </div>
   </div>
 
-  <!-- Authority Review Desk Modal -->
-  <div class="fullscreen-modal" id="authorityReviewModal" style="display:none;">
-    <div class="fullscreen-content" style="max-width:880px; max-height:85vh; margin:auto; border-radius:12px;">
-      <div class="modal-nav">
-        <div>
-          <h2 style="font-size:1.35rem; font-weight:800; color:var(--navy-900);">Medical Officer Verification Desk</h2>
-          <p style="font-size:0.82rem; color:var(--slate-500);">Review voluntary donor registrations, verify uploaded medical certificates, and clear donors for donation.</p>
+  <!-- Fullscreen Authority Review Console (100% Fullscreen, Optimized Workspace) -->
+  <div class="authority-fullscreen-overlay" id="authorityReviewModal">
+    <!-- View 1: Main Candidates Roster -->
+    <div id="authRosterView" style="display:flex; flex-direction:column; height:100vh;">
+      <div style="padding:16px 32px; background:var(--navy-950); border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div style="width:38px; height:38px; background:#dc2626; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          </div>
+          <div>
+            <h2 style="font-size:1.25rem; font-weight:800; color:white;">Medical Officer Clearance Console</h2>
+            <p style="font-size:0.76rem; color:#94a3b8;">Review voluntary donor registrations, verify uploaded medical fitness certificates, and clear candidates.</p>
+          </div>
         </div>
-        <button class="btn btn-secondary" onclick="closeAuthorityReviewModal()" style="padding:6px 14px;">✕ Close</button>
+        <div style="display:flex; align-items:center; gap:14px;">
+          <span style="background:rgba(217,119,6,0.18); border:1px solid rgba(217,119,6,0.4); color:#fbbf24; font-size:0.75rem; font-weight:800; padding:6px 14px; border-radius:20px;" id="authPendingBadge">
+            5 Registrations Awaiting Verification
+          </span>
+          <button class="btn btn-secondary" onclick="closeAuthorityReviewModal()" style="padding:6px 16px; background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.15); color:white;">✕ Exit Console</button>
+        </div>
       </div>
 
-      <div style="padding:16px 28px; background:var(--slate-50); border-bottom:1px solid var(--slate-200); display:flex; justify-content:space-between; align-items:center;">
-        <span id="pendingBadgeText" style="font-size:0.84rem; font-weight:700; color:var(--amber-600);">5 Registrations Awaiting Verification</span>
-        <span style="font-size:0.75rem; color:var(--slate-500);">Statutory NBTC Medical Officer Standards</span>
+      <div style="padding:12px 32px; background:#0f172a; border-bottom:1px solid #1e293b; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:0.8rem; color:#cbd5e1; font-weight:600;">Candidates Roster • Statutory NBTC Medical Officer Standards</span>
+        <span style="font-size:0.74rem; color:#38bdf8;">Click any candidate to open full-screen clinical clearance and approval console</span>
       </div>
 
-      <div style="overflow-y:auto; flex:1; padding:20px 28px;" id="desktopPendingListContainer">
-        <!-- Rendered via JS -->
+      <!-- Main Clean Candidate List (Showing ONLY Names, Reg No, Blood Group, State & City) -->
+      <div style="flex:1; overflow-y:auto; padding:24px 32px;" id="authCandidateListContainer">
+        <!-- Rendered dynamically via renderDesktopPendingList() -->
+      </div>
+    </div>
+
+    <!-- View 2: Dedicated Fullscreen Candidate Clearance Console -->
+    <div id="authCandidateConsoleView" style="display:none; flex-direction:column; height:100vh;">
+      <div style="padding:14px 32px; background:var(--navy-950); border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center;">
+        <button class="btn btn-secondary" onclick="closeCandidateConsoleView()" style="background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.15); color:white; font-size:0.8rem; padding:6px 14px;">
+          ← Back to Candidates Roster
+        </button>
+        <div style="text-align:center;">
+          <span style="font-size:0.68rem; font-weight:800; color:#38bdf8; text-transform:uppercase;">Official Clinical Clearance Workspace</span>
+          <h2 style="font-size:1.18rem; font-weight:800; color:white;" id="consoleCandidateHeading">Candidate Clearance Dossier</h2>
+        </div>
+        <span id="consoleStatusBadge" style="background:rgba(217,119,6,0.2); color:#fbbf24; border:1px solid #d97706; padding:5px 12px; border-radius:6px; font-size:0.75rem; font-weight:700;">WAITING FOR CLEARANCE</span>
+      </div>
+
+      <div style="flex:1; overflow-y:auto; padding:28px 32px; background:#0b1120;" id="consoleCandidateBody">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Action Bar (ONLY in this full screen view show approve / deny) -->
+      <div style="padding:16px 32px; background:#0f172a; border-top:1px solid #1e293b; display:flex; justify-content:space-between; align-items:center;" id="consoleActionBar">
+        <span style="font-size:0.75rem; color:#94a3b8;">NBTC Statutory Compliance Verified • Clearance is permanent until next donation</span>
+        <div style="display:flex; gap:12px;" id="consoleActionButtons">
+          <button class="btn btn-secondary" onclick="deferFromCandidateConsole()" style="background:#450a0a; border-color:#991b1b; color:#fca5a5; font-size:0.85rem; padding:8px 20px; font-weight:700;">
+            ✕ Decline / 90-Day Deferral
+          </button>
+          <button class="btn btn-primary" onclick="approveFromCandidateConsole()" style="background:#059669; border-color:#059669; font-size:0.85rem; padding:8px 24px; font-weight:800;">
+            ✓ Approve & Grant Clearance
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -1747,332 +2044,606 @@
       if (el) el.innerText = `Volume: ${units} Unit${units > 1 ? 's' : ''} = ${ml} ml (Standard: 350 ml/unit)`;
     };
 
-    // Fullscreen Directory Dialog
+    // Fullscreen Directory Dialog (Clean List & Modern Drilldown)
     window.openFullscreenDirectory = function(tab = 'donors', groupFilter = null) {
       currentFilterGroup = groupFilter;
+      const modal = document.getElementById('fullscreenDirectoryModal');
+      if (modal) {
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+      }
+      const cntD = document.getElementById('tabDonorsCount');
+      if (cntD && window.fullDonorsList) cntD.innerText = window.fullDonorsList.length;
+      const cntR = document.getElementById('tabRecipientsCount');
+      if (cntR && window.fullRecipientsList) cntR.innerText = window.fullRecipientsList.length;
       switchDirectoryTab(tab);
-      document.getElementById('fullscreenDirectoryModal').style.display = 'block';
-      document.body.style.overflow = 'hidden';
     };
 
     window.closeFullscreenDirectory = function() {
-      document.getElementById('fullscreenDirectoryModal').style.display = 'none';
+      const modal = document.getElementById('fullscreenDirectoryModal');
+      if (modal) modal.style.display = 'none';
       document.body.style.overflow = 'auto';
     };
 
     window.switchDirectoryTab = function(tab) {
       activeTab = tab;
-      document.getElementById('btnTabDonors').className = tab === 'donors' ? 'tab-btn active' : 'tab-btn';
-      document.getElementById('btnTabRecipients').className = tab === 'recipients' ? 'tab-btn active' : 'tab-btn';
+      const btnD = document.getElementById('btnTabDonors');
+      const btnR = document.getElementById('btnTabRecipients');
+      if (btnD) btnD.className = tab === 'donors' ? 'tab-btn active' : 'tab-btn';
+      if (btnR) btnR.className = tab === 'recipients' ? 'tab-btn active' : 'tab-btn';
       
-      const head = document.getElementById('directoryTableHeader');
       const heading = document.getElementById('fsModalHeading');
-
-      if (tab === 'donors') {
-        heading.innerText = currentFilterGroup ? `Verified Blood Donors for Group ${currentFilterGroup} (${window.fullDonorsList.length} Members Total)` : `Verified Blood Donors Directory (${window.fullDonorsList.length} Members)`;
-        head.innerHTML = `
-          <tr>
-            <th>Donor ID & Name (Aadhaar Verified)</th>
-            <th>Blood Group</th>
-            <th>Location</th>
-            <th>
-              Clinical Health Status
-              <button class="info-tooltip-btn" onclick="openClinicalHelpModal()" title="What is FIT (Hb / Rest)?">?</button>
-            </th>
-            <th>Doctor & Lab Proof</th>
-            <th>Donation Status</th>
-            <th>Direct Contact</th>
-          </tr>
-        `;
-      } else {
-        heading.innerText = `Recipients Who Need Blood (${window.fullRecipientsList.length} Inpatients)`;
-        head.innerHTML = `
-          <tr>
-            <th>Request ID & Patient Name</th>
-            <th>Required Group</th>
-            <th>Units Needed (350 ml/unit)</th>
-            <th>Hospital & District</th>
-            <th>Clinical Urgency</th>
-            <th>Attendant Contact</th>
-            <th>Status</th>
-          </tr>
-        `;
+      if (heading) {
+        if (tab === 'donors') {
+          heading.innerText = currentFilterGroup 
+            ? `Verified Blood Donors for Group ${currentFilterGroup} (${window.fullDonorsList.length} Members Total)` 
+            : `Verified Blood Donors Directory (${window.fullDonorsList.length} Members)`;
+        } else {
+          heading.innerText = `Recipients Who Want Blood (${window.fullRecipientsList.length} Inpatients)`;
+        }
       }
       applyDirectoryFilter();
     };
 
     window.applyDirectoryFilter = function() {
-      const q = (document.getElementById('directoryFilter').value || '').toLowerCase().trim();
-      const tbody = document.getElementById('directoryTableBody');
-      tbody.innerHTML = '';
+      const filterInput = document.getElementById('directoryFilter');
+      const q = (filterInput ? filterInput.value : '').toLowerCase().trim();
+      const container = document.getElementById('directoryListContainer');
+      if (!container) return;
+      container.innerHTML = '';
 
       if (activeTab === 'donors') {
-        let list = window.fullDonorsList;
+        let list = window.fullDonorsList || [];
         if (currentFilterGroup) {
           list = list.filter(d => d.bloodGroup === currentFilterGroup);
         }
         if (q) {
-          list = list.filter(d => d.name.toLowerCase().includes(q) || d.district.toLowerCase().includes(q) || d.bloodGroup.toLowerCase().includes(q));
+          list = list.filter(d => 
+            (d.name && d.name.toLowerCase().includes(q)) || 
+            (d.district && d.district.toLowerCase().includes(q)) || 
+            (d.bloodGroup && d.bloodGroup.toLowerCase().includes(q)) ||
+            (d.id && d.id.toLowerCase().includes(q))
+          );
         }
 
-        document.getElementById('directoryCountText').innerText = `Showing ${list.length} of ${window.fullDonorsList.length} verified donors`;
+        const countText = document.getElementById('directoryCountText');
+        if (countText) {
+          countText.innerText = `Showing ${list.length} of ${window.fullDonorsList.length} verified donors`;
+        }
+
+        if (list.length === 0) {
+          container.innerHTML = '<div style="text-align:center; padding:48px; color:var(--slate-500); font-size:0.9rem;">No donors match the filter criteria.</div>';
+          return;
+        }
 
         list.forEach(d => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>
-              <strong>${d.name}</strong><br/>
-              <span style="font-size:0.75rem; color:var(--slate-500); font-family:var(--font-mono);">${d.id} • Aadhaar: ${d.aadhaar}</span>
-            </td>
-            <td><span class="bg-badge" style="font-size:1.1rem; padding:2px 8px;">${d.bloodGroup}</span></td>
-            <td>${d.district}</td>
-            <td><span class="status-pill ${d.fitClass}">${d.healthStatus}</span></td>
-            <td>
-              <span style="font-size:0.75rem; color:var(--slate-600); display:block;">✓ ${d.medicalProof}</span>
-              <span style="font-size:0.75rem; color:var(--slate-500); display:block;">✓ ${d.groupProof}</span>
-            </td>
-            <td><span style="font-size:0.8rem; font-weight:600; color:var(--navy-900);">${d.donationState}</span></td>
-            <td><a href="tel:${d.mobile}" class="btn btn-secondary" style="padding:5px 12px; font-size:0.78rem;">Call ${d.mobile}</a></td>
+          const item = document.createElement('div');
+          item.className = 'clean-list-item';
+          item.innerHTML = `
+            <div class="clean-list-info" onclick="openDonorDetails('${d.id}')">
+              <span class="bg-badge" style="font-size:1.15rem; min-width:48px; text-align:center; padding:6px 10px;">${d.bloodGroup}</span>
+              <div>
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                  <strong style="font-size:1rem; color:var(--navy-900);">${d.name}</strong>
+                  <span class="status-pill status-fit" style="font-size:0.7rem; padding:2px 8px;">✓ Aadhaar Verified</span>
+                </div>
+                <div style="font-size:0.8rem; color:var(--slate-500); display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                  <span class="clean-reg-badge">${d.id}</span>
+                  <span>📍 ${d.district}</span>
+                  <span style="color:var(--emerald-600); font-weight:600;">${d.healthStatus || 'FIT (Hb: 13.5 g/dL)'}</span>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <a href="tel:${d.mobile}" class="btn btn-secondary" style="padding:7px 14px; font-size:0.8rem; text-decoration:none;" onclick="event.stopPropagation()">
+                📞 Call ${d.mobile}
+              </a>
+              <button class="btn btn-secondary" style="padding:7px 14px; font-size:0.8rem;" onclick="openDonorDetails('${d.id}')">
+                View Details →
+              </button>
+            </div>
           `;
-          tbody.appendChild(tr);
+          container.appendChild(item);
         });
       } else {
-        let list = window.fullRecipientsList;
+        let list = window.fullRecipientsList || [];
         if (q) {
-          list = list.filter(r => r.patientName.toLowerCase().includes(q) || r.district.toLowerCase().includes(q) || r.bloodGroup.toLowerCase().includes(q) || r.hospital.toLowerCase().includes(q));
+          list = list.filter(r => 
+            (r.patientName && r.patientName.toLowerCase().includes(q)) || 
+            (r.district && r.district.toLowerCase().includes(q)) || 
+            (r.bloodGroup && r.bloodGroup.toLowerCase().includes(q)) || 
+            (r.hospital && r.hospital.toLowerCase().includes(q)) ||
+            (r.id && r.id.toLowerCase().includes(q))
+          );
         }
 
-        document.getElementById('directoryCountText').innerText = `Showing ${list.length} of ${window.fullRecipientsList.length} transfusion recipients`;
+        const countText = document.getElementById('directoryCountText');
+        if (countText) {
+          countText.innerText = `Showing ${list.length} of ${window.fullRecipientsList.length} transfusion recipients`;
+        }
+
+        if (list.length === 0) {
+          container.innerHTML = '<div style="text-align:center; padding:48px; color:var(--slate-500); font-size:0.9rem;">No recipient requirements match the filter criteria.</div>';
+          return;
+        }
 
         list.forEach(r => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>
-              <strong>${r.patientName}</strong><br/>
-              <span style="font-size:0.75rem; color:var(--slate-500); font-family:var(--font-mono);">${r.id} • Aadhaar: ${r.aadhaar}</span>
-            </td>
-            <td><span class="bg-badge" style="font-size:1.1rem; padding:2px 8px;">${r.bloodGroup}</span></td>
-            <td><strong>${r.units}</strong></td>
-            <td>${r.hospital}</td>
-            <td><span class="status-pill ${r.urgencyClass}">${r.urgency}</span></td>
-            <td><a href="tel:${r.contact}" class="btn btn-primary" style="padding:5px 12px; font-size:0.78rem;">Respond & Donate</a></td>
-            <td><span style="font-size:0.8rem; font-weight:700; color:var(--navy-800);">${r.status}</span></td>
+          const item = document.createElement('div');
+          item.className = 'clean-list-item';
+          const isCommitted = r.status && r.status.includes('DONOR FOUND');
+          item.innerHTML = `
+            <div class="clean-list-info" onclick="openRecipientDetails('${r.id}')">
+              <span class="bg-badge" style="font-size:1.15rem; min-width:48px; text-align:center; padding:6px 10px;">${r.bloodGroup}</span>
+              <div>
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                  <strong style="font-size:1rem; color:var(--navy-900);">${r.patientName}</strong>
+                  <span class="status-pill ${r.urgencyClass || 'status-critical'}" style="font-size:0.7rem; padding:2px 8px;">${r.urgency || 'CRITICAL'}</span>
+                  ${isCommitted ? '<span class="status-pill status-fit" style="font-size:0.7rem; padding:2px 8px;">✓ Donor Found</span>' : ''}
+                </div>
+                <div style="font-size:0.8rem; color:var(--slate-500); display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                  <span class="clean-reg-badge">${r.id}</span>
+                  <span>🩸 ${r.units}</span>
+                  <span>🏥 ${r.hospital}</span>
+                  <span>📍 ${r.district}</span>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <button class="btn btn-primary" onclick="handleDonateAction('${r.id}')" style="background:#dc2626; border-color:#dc2626; font-weight:800; padding:8px 18px; font-size:0.82rem;">
+                Donate
+              </button>
+              <button class="btn btn-secondary" style="padding:7px 14px; font-size:0.8rem;" onclick="openRecipientDetails('${r.id}')">
+                View Details →
+              </button>
+            </div>
           `;
-          tbody.appendChild(tr);
+          container.appendChild(item);
         });
       }
     };
 
-    // CampFlow Style Autofill Keychain Logic
-    window.openLoginModal = function() {
-      document.getElementById('loginModal').style.display = 'flex';
-    };
+    // Full Detail Drilldown Modal
+    window.openDonorDetails = function(donorId) {
+      const d = (window.fullDonorsList || []).find(x => x.id === donorId);
+      if (!d) return;
 
-    window.closeLoginModal = function() {
-      document.getElementById('loginModal').style.display = 'none';
-      hideKeychain();
-    };
-
-    window.showKeychain = function() {
-      document.getElementById('keychainDropdown').style.display = 'block';
-    };
-
-    window.hideKeychain = function() {
-      document.getElementById('keychainDropdown').style.display = 'none';
-    };
-
-    window.toggleKeychain = function() {
-      const kd = document.getElementById('keychainDropdown');
-      kd.style.display = kd.style.display === 'block' ? 'none' : 'block';
-    };
-
-    window.selectKeychainAccount = function(email, pass, role) {
-      document.getElementById('loginEmail').value = email;
-      document.getElementById('loginPassword').value = pass;
-      hideKeychain();
-      executeLogin(role);
-    };
-
-    window.executeLogin = function(roleOverride = null) {
-      const email = document.getElementById('loginEmail').value;
-      const role = roleOverride || (email.includes('admin') ? 'SUPER_ADMIN' : (email.includes('doctor') ? 'MEDICAL_OFFICER' : (email.includes('dho') ? 'DISTRICT_AUTHORITY' : (email.includes('bank') ? 'BLOOD_BANK_ADMIN' : 'DONOR'))));
-
-      const fb = document.getElementById('loginFeedback');
-      fb.style.display = 'block';
-      fb.style.color = '#34d399';
-      fb.innerHTML = `✓ Signed in: <strong>${email}</strong> [${role}]`;
-
-      setTimeout(() => {
-        closeLoginModal();
-        if (role.includes('OFFICER') || role.includes('ADMIN') || role.includes('AUTHORITY') || role.includes('BANK')) {
-          document.getElementById('authorityBanner').style.display = 'flex';
-          document.getElementById('authoritySessionText').innerText = `Signed in as ${role.replace(/_/g, ' ')} (${email})`;
-          document.getElementById('desktopPendingCount').innerText = window.desktopPendingDonors.length;
-          openAuthorityReviewModal();
-        } else {
-          alert(`✓ Welcome! Citizen donor session active for ${email}.`);
-        }
-      }, 350);
-    };
-
-    // Authority Review Desk Logic
-    window.openAuthorityReviewModal = function() {
-      renderDesktopPendingList();
-      document.getElementById('authorityReviewModal').style.display = 'block';
-    };
-
-    window.closeAuthorityReviewModal = function() {
-      document.getElementById('authorityReviewModal').style.display = 'none';
-    };
-
-    window.renderDesktopPendingList = function() {
-      const c = document.getElementById('desktopPendingListContainer');
-      const count = window.desktopPendingDonors.length;
-      document.getElementById('pendingBadgeText').innerText = `${count} Registrations Awaiting Verification`;
-      document.getElementById('desktopPendingCount').innerText = count;
-
-      if (count === 0) {
-        c.innerHTML = '<div style="text-align:center; padding:40px; color:var(--slate-500);">All donor registrations have been reviewed. Queue is clear!</div>';
-        return;
-      }
-
-      c.innerHTML = `
-        <table class="directory-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Donor Name & Aadhaar</th>
-              <th>Group</th>
-              <th>State & District</th>
-              <th>Uploaded Certificates & Previews</th>
-              <th>Status</th>
-              <th>Medical Clearance Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${window.desktopPendingDonors.map((p, i) => `
-              <tr style="${p.status === 'APPROVED' ? 'background:#ecfdf5;' : ''}">
-                <td><span style="font-family:var(--font-mono); font-weight:700;">${p.id}</span></td>
-                <td>
-                  <strong>${p.name}</strong><br/>
-                  <span style="font-size:0.75rem; color:var(--slate-500); font-family:var(--font-mono);">${p.aadhaar} • 📞 ${p.mobile || '+91 9848123456'}</span>
-                </td>
-                <td><span class="bg-badge" style="padding:2px 8px;">${p.group}</span></td>
-                <td>${p.city}, ${p.st}</td>
-                <td>
-                  <div style="display:flex; flex-direction:column; gap:4px;">
-                    <button type="button" class="btn btn-secondary" style="padding:3px 8px; font-size:0.72rem; text-align:left; background:#f0fdf4; border-color:#86efac; color:#166534;" onclick="openCertificatePreview(${i}, 'fitness')">
-                      📄 Preview Fitness: <strong>${p.cert}</strong> 👁️
-                    </button>
-                    <button type="button" class="btn btn-secondary" style="padding:3px 8px; font-size:0.72rem; text-align:left; background:#eff6ff; border-color:#93c5fd; color:#1e40af;" onclick="openCertificatePreview(${i}, 'blood_group')">
-                      🩸 Preview Proof: <strong>${p.proof}</strong> 👁️
-                    </button>
-                  </div>
-                </td>
-                <td>
-                  <span class="status-pill ${p.status === 'APPROVED' ? 'status-fit' : (p.status === 'DEFERRED' ? 'status-borderline' : 'status-borderline')}">
-                    ${p.status}
-                  </span>
-                </td>
-                <td>
-                  ${p.status === 'APPROVED' 
-                    ? '<span style="color:#059669; font-weight:700; font-size:0.8rem;">✓ Cleared for Donation</span>'
-                    : `<div style="display:flex; gap:6px;">
-                        <button class="btn btn-secondary" style="background:var(--emerald-50); color:var(--emerald-600); border-color:var(--emerald-600); padding:4px 10px; font-size:0.75rem;" onclick="approveDesktopDonor(${i})">✓ Approve</button>
-                        <button class="btn btn-secondary" style="background:var(--red-50); color:var(--red-600); border-color:var(--red-600); padding:4px 10px; font-size:0.75rem;" onclick="deferDesktopDonor(${i})">✕ Defer</button>
-                      </div>`
-                  }
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
-    };
-
-    window.openCertificatePreview = function(idx, certType) {
-      currentPreviewDonorIndex = idx;
-      const d = window.desktopPendingDonors[idx];
-      const titleEl = document.getElementById('certPreviewTitle');
-      const bodyEl = document.getElementById('certPreviewBody');
-
-      const isFitness = (certType === 'fitness');
-      const docName = isFitness ? d.cert : d.proof;
-      const docUrl = isFitness ? d.certUrl : d.proofUrl;
-
-      titleEl.innerText = isFitness ? `Medical Fitness Certificate — ${d.name}` : `Blood Group Proof Certificate — ${d.name}`;
-
-      let docEmbedHtml = '';
-      if (docUrl) {
-        if (docName.toLowerCase().endsWith('.pdf')) {
-          docEmbedHtml = `
-            <div style="background:white; border:1.5px solid #cbd5e1; border-radius:8px; padding:10px; margin-bottom:14px;">
-              <div style="font-size:0.8rem; font-weight:700; color:var(--navy-900); margin-bottom:6px;">
-                Uploaded Document File: <code>${docName}</code>
-                <a href="${docUrl}" target="_blank" style="margin-left:10px; color:var(--sky-600); font-size:0.75rem;">(Open in new tab ↗)</a>
-              </div>
-              <iframe src="${docUrl}" style="width:100%; height:320px; border:1px solid #e2e8f0; border-radius:6px;"></iframe>
-            </div>
-          `;
-        } else {
-          docEmbedHtml = `
-            <div style="background:white; border:1.5px solid #cbd5e1; border-radius:8px; padding:10px; margin-bottom:14px; text-align:center;">
-              <div style="font-size:0.8rem; font-weight:700; color:var(--navy-900); margin-bottom:6px;">Attached Document: <code>${docName}</code></div>
-              <img src="${docUrl}" style="max-width:100%; max-height:300px; border-radius:6px; object-fit:contain;" />
-            </div>
-          `;
-        }
-      }
-
-      bodyEl.innerHTML = `
-        ${docEmbedHtml}
-        <div style="background:white; border:1.5px solid #cbd5e1; border-radius:8px; padding:16px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:10px; margin-bottom:10px;">
+      document.getElementById('detailModalCategory').innerText = 'VERIFIED VOLUNTARY DONOR PROFILE';
+      document.getElementById('detailModalTitle').innerText = `${d.name} (${d.bloodGroup})`;
+      
+      const body = document.getElementById('detailModalBody');
+      body.innerHTML = `
+        <div style="background:white; border-radius:10px; border:1px solid var(--slate-200); padding:20px; margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:12px; margin-bottom:14px;">
             <div>
-              <div style="font-size:0.95rem; font-weight:800; color:var(--navy-900);">CLINICAL SCREENING & CLEARANCE REPORT</div>
-              <div style="font-size:0.75rem; color:var(--slate-500);">National Blood Transfusion Council (NBTC) Standard Form-04</div>
+              <div style="font-size:0.75rem; color:var(--slate-400); font-weight:800; text-transform:uppercase;">Credential File Identifier</div>
+              <div style="font-family:var(--font-mono); font-size:1.1rem; font-weight:800; color:var(--navy-900);">${d.id} • Aadhaar: ${d.aadhaar}</div>
             </div>
-            <span class="bg-badge" style="font-size:1.1rem; padding:4px 10px;">${d.group}</span>
+            <span class="bg-badge" style="font-size:1.35rem; padding:4px 14px;">${d.bloodGroup}</span>
           </div>
 
-          <table style="width:100%; font-size:0.82rem; border-collapse:collapse; margin-bottom:12px;">
-            <tr><td style="padding:4px 0; color:var(--slate-500); width:40%;">Donor Full Name:</td><td style="font-weight:700;">${d.name}</td></tr>
-            <tr><td style="padding:4px 0; color:var(--slate-500);">Aadhaar Identifier:</td><td style="font-family:var(--font-mono); font-weight:700;">${d.aadhaar}</td></tr>
-            <tr><td style="padding:4px 0; color:var(--slate-500);">Residential Area:</td><td>${d.city}, ${d.st}</td></tr>
-            <tr><td style="padding:4px 0; color:var(--slate-500);">Hemoglobin (Hb):</td><td><strong style="color:var(--emerald-600);">13.5 g/dL</strong> (Statutory NBTC Minimum: 12.5 g/dL)</td></tr>
-            <tr><td style="padding:4px 0; color:var(--slate-500);">Blood Pressure & Pulse:</td><td><strong>120/80 mmHg</strong> • 74 bpm (Optimal Range)</td></tr>
-            <tr><td style="padding:4px 0; color:var(--slate-500);">Serological Screening:</td><td><strong style="color:var(--emerald-600);">NON-REACTIVE</strong> (HIV-1/2, HBsAg, HCV, VDRL, Malaria)</td></tr>
-            <tr><td style="padding:4px 0; color:var(--slate-500);">Verified Document:</td><td><code>${docName}</code></td></tr>
-          </table>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; font-size:0.85rem; margin-bottom:16px;">
+            <div>
+              <span style="color:var(--slate-500); display:block; font-size:0.74rem;">Full Legal Name</span>
+              <strong style="color:var(--navy-900); font-size:0.95rem;">${d.name}</strong>
+            </div>
+            <div>
+              <span style="color:var(--slate-500); display:block; font-size:0.74rem;">Registered Location</span>
+              <strong style="color:var(--navy-900); font-size:0.95rem;">${d.district}</strong>
+            </div>
+            <div>
+              <span style="color:var(--slate-500); display:block; font-size:0.74rem;">Clinical Status</span>
+              <span class="status-pill ${d.fitClass || 'status-fit'}" style="margin-top:2px;">${d.healthStatus || 'FIT (Hb: 13.5 g/dL)'}</span>
+            </div>
+            <div>
+              <span style="color:var(--slate-500); display:block; font-size:0.74rem;">Donation State</span>
+              <strong style="color:var(--navy-900);">${d.donationState || 'Ready to Donate (Eligible Now)'}</strong>
+            </div>
+          </div>
 
-          <div style="background:#f8fafc; border-left:3px solid var(--emerald-600); padding:8px 12px; font-size:0.75rem; color:var(--slate-600);">
-            <em>"I have personally reviewed the uploaded medical documentation and screening metrics. The donor meets all required physiological parameters and is cleared for voluntary blood donation."</em><br/>
-            <strong>Dr. V. S. Reddy, MD (Civil Surgeon & Medical Officer)</strong> • Reg #MCI-AP-49201
+          <div style="background:var(--slate-50); border:1px solid var(--slate-200); border-radius:8px; padding:12px 16px; margin-bottom:14px;">
+            <div style="font-size:0.78rem; font-weight:800; color:var(--navy-900); margin-bottom:6px;">Official Clinical Verification Certificates:</div>
+            <div style="font-size:0.8rem; color:var(--slate-600); line-height:1.6;">
+              ✓ <strong>Medical Fitness:</strong> ${d.medicalProof || 'Registered Physician Medical Certificate'}<br/>
+              ✓ <strong>Blood Group Proof:</strong> ${d.groupProof || 'Clinical Pathology Lab Certificate / Donor Card'}
+            </div>
+          </div>
+
+          <div style="border-left:3px solid var(--emerald-600); padding:8px 12px; background:#ecfdf5; font-size:0.75rem; color:#065f46;">
+            <strong>NBTC Statutory Clearance:</strong> Donor meets all physical eligibility benchmarks (Hb ≥ 12.5 g/dL, optimal pulse, non-reactive serology). Cleared for direct transfusion coordination.
           </div>
         </div>
       `;
 
-      document.getElementById('certPreviewModal').style.display = 'flex';
+      const footer = document.getElementById('detailModalFooter');
+      footer.innerHTML = `
+        <span style="font-size:0.78rem; color:var(--slate-500);">Direct Tele-Coordination</span>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-secondary" onclick="closeFsDetailModal()">Close</button>
+          <a href="tel:${d.mobile}" class="btn btn-primary" style="background:#059669; border-color:#059669; text-decoration:none;">
+            📞 Call ${d.mobile}
+          </a>
+        </div>
+      `;
+
+      document.getElementById('fsDetailModal').style.display = 'flex';
     };
 
-    window.closeCertificatePreview = function() {
-      document.getElementById('certPreviewModal').style.display = 'none';
-      currentPreviewDonorIndex = null;
+    window.openRecipientDetails = function(reqId) {
+      const r = (window.fullRecipientsList || []).find(x => x.id === reqId);
+      if (!r) return;
+
+      document.getElementById('detailModalCategory').innerText = 'EMERGENCY TRANSFUSION DOSSIER';
+      document.getElementById('detailModalTitle').innerText = `${r.patientName} — ${r.hospital}`;
+
+      const isCommitted = r.status && r.status.includes('DONOR FOUND');
+
+      const body = document.getElementById('detailModalBody');
+      body.innerHTML = `
+        <div style="background:white; border-radius:10px; border:1px solid var(--slate-200); padding:20px; margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:12px; margin-bottom:14px;">
+            <div>
+              <div style="font-size:0.75rem; color:var(--slate-400); font-weight:800; text-transform:uppercase;">Hospital Transfusion Request</div>
+              <div style="font-family:var(--font-mono); font-size:1.1rem; font-weight:800; color:var(--navy-900);">${r.id} • Aadhaar: ${r.aadhaar}</div>
+            </div>
+            <span class="bg-badge" style="font-size:1.35rem; padding:4px 14px;">${r.bloodGroup}</span>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; font-size:0.85rem; margin-bottom:16px;">
+            <div>
+              <span style="color:var(--slate-500); display:block; font-size:0.74rem;">Patient Name</span>
+              <strong style="color:var(--navy-900); font-size:0.95rem;">${r.patientName}</strong>
+            </div>
+            <div>
+              <span style="color:var(--slate-500); display:block; font-size:0.74rem;">Clinical Urgency</span>
+              <span class="status-pill ${r.urgencyClass || 'status-critical'}" style="margin-top:2px;">${r.urgency || 'CRITICAL'}</span>
+            </div>
+            <div>
+              <span style="color:var(--slate-500); display:block; font-size:0.74rem;">Hospital & Area</span>
+              <strong style="color:var(--navy-900);">${r.hospital} (${r.district})</strong>
+            </div>
+            <div>
+              <span style="color:var(--slate-500); display:block; font-size:0.74rem;">Volume Required</span>
+              <strong style="color:var(--red-600);">${r.units}</strong>
+            </div>
+            <div>
+              <span style="color:var(--slate-500); display:block; font-size:0.74rem;">Attendant Mobile Contact</span>
+              <strong style="color:var(--navy-900);">${r.contact}</strong>
+            </div>
+            <div>
+              <span style="color:var(--slate-500); display:block; font-size:0.74rem;">Transfusion Status</span>
+              <strong style="color:${isCommitted ? 'var(--emerald-600)' : 'var(--amber-600)'};">${r.status || 'LOOKING_FOR_DONORS'}</strong>
+            </div>
+          </div>
+
+          ${isCommitted ? `
+            <div style="border-left:3px solid var(--emerald-600); padding:10px 14px; background:#ecfdf5; font-size:0.8rem; color:#065f46; border-radius:4px;">
+              <strong>✓ Confirmed Donor Assigned:</strong> A voluntary verified donor has committed to fulfill this requirement. Hospital transfusion desk and attendant have been notified.
+            </div>
+          ` : `
+            <div style="border-left:3px solid var(--red-600); padding:10px 14px; background:#fff1f2; font-size:0.8rem; color:#9f1239; border-radius:4px;">
+              <strong>Active Emergency:</strong> Immediate voluntary donor response requested. Click <strong>"Donate"</strong> below to confirm your commitment and dispatch an immediate tele-notification to the patient's attendant.
+            </div>
+          `}
+        </div>
+      `;
+
+      const footer = document.getElementById('detailModalFooter');
+      footer.innerHTML = `
+        <span style="font-size:0.78rem; color:var(--slate-500);">Hospital Transfusion Desk</span>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-secondary" onclick="closeFsDetailModal()">Close</button>
+          <a href="tel:${r.contact}" class="btn btn-secondary" style="text-decoration:none;">📞 Call Attendant</a>
+          <button class="btn btn-primary" onclick="handleDonateAction('${r.id}')" style="background:#dc2626; border-color:#dc2626; font-weight:800; padding:8px 20px;">
+            Donate
+          </button>
+        </div>
+      `;
+
+      document.getElementById('fsDetailModal').style.display = 'flex';
     };
 
-    window.approveFromPreviewModal = function() {
-      if (currentPreviewDonorIndex !== null) {
-        approveDesktopDonor(currentPreviewDonorIndex);
-        closeCertificatePreview();
+    window.closeFsDetailModal = function() {
+      const modal = document.getElementById('fsDetailModal');
+      if (modal) modal.style.display = 'none';
+    };
+
+    // Donate Workflow with Immediate Patient Attendant Notification
+    window.handleDonateAction = function(reqId) {
+      const r = (window.fullRecipientsList || []).find(x => x.id === reqId);
+      if (!r) return;
+
+      if (!window.currentUser) {
+        alert("Please sign in with your account to confirm donation and dispatch a direct notification to the patient's attendant.");
+        openLoginModal();
+        return;
+      }
+
+      const confirmed = confirm(
+        `Confirm Voluntary Blood Donation Commitment:
+
+` +
+        `Patient: ${r.patientName}
+` +
+        `Required Blood Group: ${r.bloodGroup}
+` +
+        `Hospital: ${r.hospital}
+` +
+        `Units: ${r.units}
+
+` +
+        `When you click OK, VitalSphere will immediately dispatch a verified donor notification to the patient attendant (${r.contact}).`
+      );
+
+      if (!confirmed) return;
+
+      r.status = 'DONOR FOUND (Coordination in progress)';
+
+      // Dispatch real-time notifications
+      addNotification({
+        category: 'DONATION',
+        title: `🎉 Donor Found for ${r.patientName}!`,
+        message: `Donor ${window.currentUser.name || window.currentUser.email} has accepted emergency request ${r.id} (${r.bloodGroup}) at ${r.hospital}. Attendant notified at ${r.contact}.`,
+        time: 'Just now',
+        unread: true
+      });
+
+      addNotification({
+        category: 'DONATION',
+        title: `Donation Commitment Registered`,
+        message: `You have committed to donate blood for ${r.patientName} (${r.bloodGroup}) at ${r.hospital}. Please reach out to attendant at ${r.contact}.`,
+        time: 'Just now',
+        unread: true
+      });
+
+      applyDirectoryFilter();
+      if (document.getElementById('fsDetailModal').style.display === 'flex') {
+        openRecipientDetails(reqId);
+      }
+
+      alert(
+        `✓ SUCCESS: Notification dispatched to ${r.patientName}'s attendant!
+
+` +
+        `Patient Attendant: ${r.contact}
+` +
+        `Hospital Desk: ${r.hospital}
+` +
+        `Thank you for saving a life!`
+      );
+    };
+
+    // Fullscreen Authority Review Console (100% Fullscreen, Optimized Workspace)
+    window.openAuthorityReviewModal = function() {
+      const modal = document.getElementById('authorityReviewModal');
+      if (modal) modal.style.display = 'flex';
+      closeCandidateConsoleView(); // ensure clean roster view
+      renderDesktopPendingList();
+    };
+
+    window.closeAuthorityReviewModal = function() {
+      const modal = document.getElementById('authorityReviewModal');
+      if (modal) modal.style.display = 'none';
+    };
+
+    window.renderDesktopPendingList = function() {
+      const c = document.getElementById('authCandidateListContainer');
+      const count = (window.desktopPendingDonors || []).length;
+      
+      const badge = document.getElementById('authPendingBadge');
+      if (badge) badge.innerText = `${count} Registrations Awaiting Verification`;
+      
+      const deskCount = document.getElementById('desktopPendingCount');
+      if (deskCount) deskCount.innerText = count;
+
+      if (!c) return;
+
+      if (count === 0) {
+        c.innerHTML = '<div style="text-align:center; padding:60px; color:#94a3b8; font-size:1rem;">All voluntary donor registrations have been verified. Clearance queue is 100% clear!</div>';
+        return;
+      }
+
+      // Main list shows ONLY: Names, Reg No, Blood Group, State & City (No clutter, no approve/deny buttons here!)
+      c.innerHTML = `
+        <div style="max-width:980px; margin:0 auto; display:flex; flex-direction:column; gap:12px;">
+          ${window.desktopPendingDonors.map((p, i) => `
+            <div style="background:#1e293b; border:1px solid #334155; border-radius:10px; padding:18px 24px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:all 0.15s ease;"
+                 onmouseover="this.style.borderColor='#38bdf8'; this.style.background='#24334a';"
+                 onmouseout="this.style.borderColor='#334155'; this.style.background='#1e293b';"
+                 onclick="openAuthorityCandidateReview(${i})">
+              
+              <div style="display:flex; align-items:center; gap:20px;">
+                <span style="background:#dc2626; color:white; font-size:1.2rem; font-weight:900; padding:6px 14px; border-radius:8px; min-width:52px; text-align:center;">
+                  ${p.group}
+                </span>
+                <div>
+                  <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+                    <strong style="font-size:1.08rem; color:white;">${p.name}</strong>
+                    <span style="font-size:0.72rem; font-weight:800; padding:2px 8px; border-radius:12px; ${p.status === 'APPROVED' ? 'background:#065f46; color:#6ee7b7;' : (p.status === 'DEFERRED' ? 'background:#7f1d1d; color:#fca5a5;' : 'background:rgba(217,119,6,0.25); color:#fbbf24; border:1px solid #d97706;')}">
+                      ${p.status || 'PENDING MEDICAL CLEARANCE'}
+                    </span>
+                  </div>
+                  <div style="font-size:0.82rem; color:#94a3b8; display:flex; gap:16px; align-items:center;">
+                    <span style="font-family:var(--font-mono); color:#cbd5e1; font-weight:700;">${p.id}</span>
+                    <span>📍 ${p.city}, ${p.st}</span>
+                    <span>📞 ${p.mobile || '+91 9848123456'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:12px;">
+                <button class="btn btn-secondary" style="background:#38bdf8; border-color:#38bdf8; color:#0f172a; font-weight:800; font-size:0.82rem; padding:8px 18px;" onclick="event.stopPropagation(); openAuthorityCandidateReview(${i})">
+                  Open Clinical Clearance Console →
+                </button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    };
+
+    // Dedicated Fullscreen Candidate Clearance Console View
+    window.openAuthorityCandidateReview = function(idx) {
+      window.currentReviewCandidateIdx = idx;
+      const d = window.desktopPendingDonors[idx];
+      if (!d) return;
+
+      document.getElementById('authRosterView').style.display = 'none';
+      const consoleView = document.getElementById('authCandidateConsoleView');
+      consoleView.style.display = 'flex';
+
+      document.getElementById('consoleCandidateHeading').innerText = `Clinical Dossier: ${d.name} (${d.group})`;
+      
+      const badge = document.getElementById('consoleStatusBadge');
+      if (badge) {
+        badge.innerText = d.status || 'WAITING FOR CLEARANCE';
+        badge.style.background = d.status === 'APPROVED' ? '#065f46' : (d.status === 'DEFERRED' ? '#7f1d1d' : 'rgba(217,119,6,0.25)');
+        badge.style.color = d.status === 'APPROVED' ? '#6ee7b7' : (d.status === 'DEFERRED' ? '#fca5a5' : '#fbbf24');
+      }
+
+      // Check documents
+      const isPdfFit = (d.cert || '').toLowerCase().endsWith('.pdf');
+      const isPdfProof = (d.proof || '').toLowerCase().endsWith('.pdf');
+
+      const body = document.getElementById('consoleCandidateBody');
+      body.innerHTML = `
+        <div style="max-width:1100px; margin:0 auto; display:grid; grid-template-columns:1.1fr 1fr; gap:24px;">
+          <!-- Left Column: Clinical Parameters & Doctor Sign-off -->
+          <div style="background:#1e293b; border:1px solid #334155; border-radius:12px; padding:24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:14px; margin-bottom:16px;">
+              <div>
+                <span style="font-size:0.7rem; color:#38bdf8; font-weight:800; text-transform:uppercase;">Statutory Candidate Registration</span>
+                <h3 style="font-size:1.25rem; font-weight:800; color:white; margin-top:2px;">${d.name}</h3>
+                <span style="font-family:var(--font-mono); font-size:0.8rem; color:#94a3b8;">Registration: ${d.id} • Aadhaar: ${d.aadhaar}</span>
+              </div>
+              <span style="background:#dc2626; color:white; font-size:1.5rem; font-weight:900; padding:6px 16px; border-radius:8px;">${d.group}</span>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; font-size:0.85rem; margin-bottom:20px;">
+              <div>
+                <span style="color:#94a3b8; font-size:0.75rem; display:block;">Permanent Residence</span>
+                <strong style="color:white;">${d.city}, ${d.st}</strong>
+              </div>
+              <div>
+                <span style="color:#94a3b8; font-size:0.75rem; display:block;">Registered Mobile Contact</span>
+                <strong style="color:white;">${d.mobile || '+91 9848123456'}</strong>
+              </div>
+              <div>
+                <span style="color:#94a3b8; font-size:0.75rem; display:block;">Candidate Status</span>
+                <strong style="color:#fbbf24;">${d.status || 'WAITING FOR CLEARANCE'}</strong>
+              </div>
+              <div>
+                <span style="color:#94a3b8; font-size:0.75rem; display:block;">Submission Timestamp</span>
+                <strong style="color:#cbd5e1;">${d.submittedAt || 'Today, Active Session'}</strong>
+              </div>
+            </div>
+
+            <!-- NBTC Standard Form-04 Clinical Findings -->
+            <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; padding:16px; margin-bottom:20px;">
+              <div style="font-size:0.82rem; font-weight:800; color:#38bdf8; margin-bottom:10px;">NBTC CLINICAL SCREENING METRICS</div>
+              <table style="width:100%; font-size:0.82rem; color:#cbd5e1; border-collapse:collapse;">
+                <tr style="border-bottom:1px solid #1e293b;"><td style="padding:6px 0; color:#94a3b8;">Hemoglobin (Hb):</td><td><strong style="color:#34d399;">13.5 g/dL</strong> (Statutory Min: 12.5 g/dL) ✓</td></tr>
+                <tr style="border-bottom:1px solid #1e293b;"><td style="padding:6px 0; color:#94a3b8;">Blood Pressure:</td><td><strong style="color:white;">120/80 mmHg</strong> (Normotensive) ✓</td></tr>
+                <tr style="border-bottom:1px solid #1e293b;"><td style="padding:6px 0; color:#94a3b8;">Pulse & Temperature:</td><td><strong style="color:white;">74 bpm • 98.4°F (Afebrile)</strong> ✓</td></tr>
+                <tr><td style="padding:6px 0; color:#94a3b8;">Serological Screen:</td><td><strong style="color:#34d399;">NON-REACTIVE</strong> (HIV, HBsAg, HCV, VDRL) ✓</td></tr>
+              </table>
+            </div>
+
+            <!-- Dr. Reddy Statutory Attestation -->
+            <div style="background:#132338; border-left:4px solid #38bdf8; padding:12px 16px; border-radius:0 8px 8px 0; font-size:0.78rem; color:#e2e8f0; line-height:1.6;">
+              <em>"I have reviewed the uploaded medical proof and laboratory reports. The candidate satisfies all statutory physiological benchmarks and is medically qualified for voluntary donation."</em><br/>
+              <strong style="color:#38bdf8;">Dr. V. S. Reddy, MD (Chief Medical Officer & Civil Surgeon)</strong><br/>
+              <span style="font-size:0.72rem; color:#94a3b8;">NBTC Statutory Registration #MCI-AP-49201</span>
+            </div>
+          </div>
+
+          <!-- Right Column: Official Certificate Previews (PDF / Image) -->
+          <div style="background:#1e293b; border:1px solid #334155; border-radius:12px; padding:24px; display:flex; flex-direction:column;">
+            <div style="font-size:0.85rem; font-weight:800; color:white; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+              <span>OFFICIAL CERTIFICATES PREVIEW</span>
+              <span style="font-size:0.72rem; color:#94a3b8;">2 Documents Attached</span>
+            </div>
+
+            <!-- Document 1: Fitness Certificate -->
+            <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; padding:14px; margin-bottom:16px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span style="font-size:0.78rem; font-weight:700; color:#38bdf8;">📄 1. Doctor Signed Medical Fitness Certificate</span>
+                <span style="font-size:0.7rem; font-family:var(--font-mono); color:#cbd5e1;">${d.cert || 'physician_clearance.pdf'}</span>
+              </div>
+              ${d.certUrl ? `
+                ${isPdfFit ? `
+                  <iframe src="${d.certUrl}" style="width:100%; height:220px; border:1px solid #334155; border-radius:6px; background:white;"></iframe>
+                ` : `
+                  <img src="${d.certUrl}" style="width:100%; max-height:220px; object-fit:contain; border-radius:6px; background:white;" />
+                `}
+              ` : `
+                <div style="background:#1e293b; border:1px dashed #475569; border-radius:6px; padding:24px; text-align:center;">
+                  <span style="font-size:1.8rem; display:block; margin-bottom:6px;">📄</span>
+                  <strong style="font-size:0.82rem; color:white;">Official Registered Physician Certificate</strong><br/>
+                  <span style="font-size:0.74rem; color:#94a3b8;">Document file: <code>${d.cert || 'fitness_certificate.pdf'}</code> (Archived on Cloud Storage)</span>
+                </div>
+              `}
+            </div>
+
+            <!-- Document 2: Blood Group Proof -->
+            <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; padding:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span style="font-size:0.78rem; font-weight:700; color:#f87171;">🩸 2. Blood Group Lab Report / Donor Card</span>
+                <span style="font-size:0.7rem; font-family:var(--font-mono); color:#cbd5e1;">${d.proof || 'lab_group_proof.pdf'}</span>
+              </div>
+              ${d.proofUrl ? `
+                ${isPdfProof ? `
+                  <iframe src="${d.proofUrl}" style="width:100%; height:220px; border:1px solid #334155; border-radius:6px; background:white;"></iframe>
+                ` : `
+                  <img src="${d.proofUrl}" style="width:100%; max-height:220px; object-fit:contain; border-radius:6px; background:white;" />
+                `}
+              ` : `
+                <div style="background:#1e293b; border:1px dashed #475569; border-radius:6px; padding:24px; text-align:center;">
+                  <span style="font-size:1.8rem; display:block; margin-bottom:6px;">🩸</span>
+                  <strong style="font-size:0.82rem; color:white;">Clinical Pathology Laboratory Report</strong><br/>
+                  <span style="font-size:0.74rem; color:#94a3b8;">Document file: <code>${d.proof || 'pathology_group_report.pdf'}</code> (Archived on Cloud Storage)</span>
+                </div>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Update Action Bar buttons
+      const actionContainer = document.getElementById('consoleActionButtons');
+      if (d.status === 'APPROVED') {
+        actionContainer.innerHTML = `
+          <span style="color:#34d399; font-weight:800; font-size:0.9rem; margin-right:12px;">✓ Candidate Medically Cleared & Published to Live Registry</span>
+          <button class="btn btn-secondary" onclick="closeCandidateConsoleView()" style="background:#1e293b; color:white; border-color:#475569;">Return to Roster</button>
+        `;
+      } else {
+        actionContainer.innerHTML = `
+          <button class="btn btn-secondary" onclick="deferFromCandidateConsole()" style="background:#450a0a; border-color:#991b1b; color:#fca5a5; font-size:0.85rem; padding:8px 20px; font-weight:700;">
+            ✕ Decline / 90-Day Deferral
+          </button>
+          <button class="btn btn-primary" onclick="approveFromCandidateConsole()" style="background:#059669; border-color:#059669; font-size:0.85rem; padding:8px 24px; font-weight:800;">
+            ✓ Approve & Grant Clearance
+          </button>
+        `;
       }
     };
 
-    window.approveDesktopDonor = function(idx) {
-      const d = window.desktopPendingDonors[idx];
+    window.closeCandidateConsoleView = function() {
+      const consoleView = document.getElementById('authCandidateConsoleView');
+      if (consoleView) consoleView.style.display = 'none';
+      const rosterView = document.getElementById('authRosterView');
+      if (rosterView) rosterView.style.display = 'flex';
+      renderDesktopPendingList();
+    };
+
+    window.approveFromCandidateConsole = function() {
+      if (window.currentReviewCandidateIdx === null || window.currentReviewCandidateIdx === undefined) return;
+      const d = window.desktopPendingDonors[window.currentReviewCandidateIdx];
+      if (!d) return;
+
       d.status = 'APPROVED';
 
       window.fullDonorsList.unshift({
-        id: `DNR-${257 + idx}`,
+        id: `DNR-${String(257 + window.currentReviewCandidateIdx)}`,
         name: d.name,
         aadhaar: d.aadhaar,
         bloodGroup: d.group,
@@ -2088,28 +2659,292 @@
         donationState: "Ready to Donate (Eligible Now)"
       });
 
-      renderDesktopPendingList();
-      alert(`✓ ${d.name} (${d.group}) has been APPROVED!\nCredentials verified and added to live 256+ donor directory.`);
+      addNotification({
+        category: 'APPROVAL',
+        title: `✓ Medical Clearance Approved`,
+        message: `${d.name} (${d.group}, ${d.city}) cleared by Dr. V. S. Reddy and added to the National Live Donor Directory.`,
+        time: 'Just now',
+        unread: true
+      });
+
+      alert(`✓ ${d.name} (${d.group}) has been APPROVED!
+Credentials verified and added to live 256+ donor directory.`);
+      closeCandidateConsoleView();
     };
 
-    window.deferDesktopDonor = function(idx) {
-      const d = window.desktopPendingDonors[idx];
+    window.deferFromCandidateConsole = function() {
+      if (window.currentReviewCandidateIdx === null || window.currentReviewCandidateIdx === undefined) return;
+      const d = window.desktopPendingDonors[window.currentReviewCandidateIdx];
+      if (!d) return;
+
       d.status = 'DEFERRED';
-      renderDesktopPendingList();
+
+      addNotification({
+        category: 'APPROVAL',
+        title: `Donor Clinical Deferral`,
+        message: `Candidate ${d.name} (${d.group}) has been placed on 90-day medical deferral.`,
+        time: 'Just now',
+        unread: true
+      });
+
       alert(`Donor ${d.name} placed on 90-day clinical deferral.`);
+      closeCandidateConsoleView();
+    };
+
+    // CampFlow Style Autofill Keychain Logic
+    window.openLoginModal = function() {
+      const modal = document.getElementById('loginModal');
+      if (modal) modal.style.display = 'flex';
+    };
+
+    window.closeLoginModal = function() {
+      const modal = document.getElementById('loginModal');
+      if (modal) modal.style.display = 'none';
+      hideKeychain();
+    };
+
+    window.showKeychain = function() {
+      const kd = document.getElementById('keychainDropdown');
+      if (kd) kd.style.display = 'block';
+    };
+
+    window.hideKeychain = function() {
+      const kd = document.getElementById('keychainDropdown');
+      if (kd) kd.style.display = 'none';
+    };
+
+    window.toggleKeychain = function() {
+      const kd = document.getElementById('keychainDropdown');
+      if (kd) kd.style.display = kd.style.display === 'block' ? 'none' : 'block';
+    };
+
+    window.selectKeychainAccount = function(email, pass, role) {
+      const emailInput = document.getElementById('loginEmail');
+      const passInput = document.getElementById('loginPassword');
+      if (emailInput) emailInput.value = email;
+      if (passInput) passInput.value = pass;
+      hideKeychain();
+      executeLogin(role);
+    };
+
+    window.executeLogin = function(roleOverride = null) {
+      const email = (document.getElementById('loginEmail').value || '').trim();
+      const role = roleOverride || (email.includes('admin') ? 'SUPER_ADMIN' : (email.includes('doctor') ? 'MEDICAL_OFFICER' : (email.includes('dho') ? 'DISTRICT_AUTHORITY' : (email.includes('bank') ? 'BLOOD_BANK_ADMIN' : 'DONOR'))));
+
+      let displayName = email.split('@')[0].replace(/[._]/g, ' ');
+      displayName = displayName.replace(/\b\w/g, l => l.toUpperCase());
+
+      window.currentUser = {
+        email: email,
+        role: role,
+        name: displayName
+      };
+
+      const fb = document.getElementById('loginFeedback');
+      if (fb) {
+        fb.style.display = 'block';
+        fb.style.color = '#34d399';
+        fb.innerHTML = `✓ Signed in: <strong>${email}</strong> [${role}]`;
+      }
+
+      // Update Navbar Sign In -> Sign Out toggle
+      const signInBtn = document.getElementById('navSignInBtn');
+      const userBadge = document.getElementById('navUserBadge');
+      const userName = document.getElementById('navUserName');
+      const userRole = document.getElementById('navUserRole');
+
+      if (signInBtn) signInBtn.style.display = 'none';
+      if (userBadge) userBadge.style.display = 'inline-flex';
+      if (userName) userName.innerText = displayName;
+      if (userRole) userRole.innerText = role.replace(/_/g, ' ');
+
+      addNotification({
+        category: 'ALL',
+        title: `Welcome, ${displayName}`,
+        message: `Authenticated as ${role.replace(/_/g, ' ')}. Direct blood coordination & medical clearance tools active.`,
+        time: 'Just now',
+        unread: true
+      });
+
+      setTimeout(() => {
+        closeLoginModal();
+        if (role.includes('OFFICER') || role.includes('ADMIN') || role.includes('AUTHORITY') || role.includes('BANK')) {
+          const banner = document.getElementById('authorityBanner');
+          if (banner) banner.style.display = 'flex';
+          const sessionText = document.getElementById('authoritySessionText');
+          if (sessionText) sessionText.innerText = `Signed in as ${role.replace(/_/g, ' ')} (${email})`;
+          openAuthorityReviewModal();
+        } else {
+          alert(`✓ Welcome, ${displayName}! Your voluntary donor session is active.`);
+        }
+      }, 350);
+    };
+
+    window.executeSignOut = function() {
+      window.currentUser = null;
+
+      const signInBtn = document.getElementById('navSignInBtn');
+      const userBadge = document.getElementById('navUserBadge');
+      const banner = document.getElementById('authorityBanner');
+      const notifPanel = document.getElementById('notifDropdown');
+
+      if (signInBtn) signInBtn.style.display = 'inline-block';
+      if (userBadge) userBadge.style.display = 'none';
+      if (banner) banner.style.display = 'none';
+      if (notifPanel) notifPanel.style.display = 'none';
+
+      closeAuthorityReviewModal();
+      alert('Signed out successfully. Session ended.');
     };
 
     window.signOutAuthority = function() {
-      document.getElementById('authorityBanner').style.display = 'none';
-      alert('Signed out from Authority session.');
+      executeSignOut();
     };
 
+    // Notification Center Logic
+    window.notificationsList = [
+      {
+        id: 'n1',
+        category: 'EMERGENCY',
+        title: '🚨 Emergency O- Needed (ICU)',
+        message: 'Apollo Speciality Hospital req REQ-8001 (Vijayawada). 2 units standard PRBC needed immediately.',
+        time: '12m ago',
+        unread: true
+      },
+      {
+        id: 'n2',
+        category: 'APPROVAL',
+        title: '✓ Medical Clearance Approved',
+        message: 'Dr. V. S. Reddy cleared Suresh Nair (B+) for voluntary donation with verified lab certificates.',
+        time: '34m ago',
+        unread: true
+      },
+      {
+        id: 'n3',
+        category: 'DONATION',
+        title: '🎉 Donor Found for Tanvi Sharma',
+        message: 'Harish Kumar (O-) accepted donation request REQ-8004 at Yashoda Hospital. Attendant notified.',
+        time: '1h ago',
+        unread: true
+      },
+      {
+        id: 'n4',
+        category: 'EMERGENCY',
+        title: '🚨 AB- Trauma Transfusion Alert',
+        message: 'Manipal Hospital ICU trauma requirement for Rajesh Reddy. Matched donors notified.',
+        time: '2h ago',
+        unread: false
+      }
+    ];
+
+    window.currentNotifFilter = 'ALL';
+
+    window.toggleNotificationPanel = function() {
+      const panel = document.getElementById('notifDropdown');
+      if (!panel) return;
+      const isVisible = (panel.style.display === 'block');
+      panel.style.display = isVisible ? 'none' : 'block';
+      if (!isVisible) {
+        renderNotifications();
+      }
+    };
+
+    window.switchNotifFilter = function(category, btnEl) {
+      window.currentNotifFilter = category;
+      document.querySelectorAll('.notif-tab').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+      renderNotifications();
+    };
+
+    window.renderNotifications = function() {
+      const container = document.getElementById('notifItemsContainer');
+      if (!container) return;
+
+      let list = window.notificationsList || [];
+      if (window.currentNotifFilter !== 'ALL') {
+        list = list.filter(n => n.category === window.currentNotifFilter);
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:32px; color:#94a3b8; font-size:0.8rem;">No notifications in this category.</div>';
+      } else {
+        container.innerHTML = list.map(n => `
+          <div class="notif-item ${n.unread ? 'unread' : ''}" onclick="markSingleNotifRead('${n.id}')">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+              <strong style="font-size:0.82rem; color:var(--navy-900);">${n.title}</strong>
+              <span style="font-size:0.7rem; color:#94a3b8;">${n.time}</span>
+            </div>
+            <div style="font-size:0.76rem; color:var(--slate-600); line-height:1.4;">${n.message}</div>
+          </div>
+        `).join('');
+      }
+
+      updateNotificationBadge();
+    };
+
+    window.markSingleNotifRead = function(id) {
+      const n = (window.notificationsList || []).find(x => x.id === id);
+      if (n) n.unread = false;
+      renderNotifications();
+    };
+
+    window.markAllNotificationsRead = function() {
+      (window.notificationsList || []).forEach(n => n.unread = false);
+      renderNotifications();
+    };
+
+    window.addNotification = function(notif) {
+      if (!window.notificationsList) window.notificationsList = [];
+      window.notificationsList.unshift({
+        id: 'n-' + Date.now(),
+        category: notif.category || 'ALL',
+        title: notif.title,
+        message: notif.message,
+        time: notif.time || 'Just now',
+        unread: true
+      });
+      renderNotifications();
+    };
+
+    window.updateNotificationBadge = function() {
+      const unreadCount = (window.notificationsList || []).filter(n => n.unread).length;
+      const badge = document.getElementById('notifBadge');
+      const pill = document.getElementById('notifUnreadPill');
+      
+      if (badge) {
+        if (unreadCount > 0) {
+          badge.style.display = 'inline-block';
+          badge.innerText = unreadCount;
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+
+      if (pill) {
+        pill.innerText = `${unreadCount} Unread`;
+        pill.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+      }
+    };
+
+    // Close notifications when clicking outside
+    document.addEventListener('click', function(e) {
+      const panel = document.getElementById('notifDropdown');
+      const btn = document.getElementById('notifBellBtn');
+      if (panel && panel.style.display === 'block') {
+        if (!panel.contains(e.target) && !btn.contains(e.target)) {
+          panel.style.display = 'none';
+        }
+      }
+    });
+
     window.openClinicalHelpModal = function() {
-      document.getElementById('clinicalHelpModal').style.display = 'flex';
+      const modal = document.getElementById('clinicalHelpModal');
+      if (modal) modal.style.display = 'flex';
     };
 
     window.closeClinicalHelpModal = function() {
-      document.getElementById('clinicalHelpModal').style.display = 'none';
+      const modal = document.getElementById('clinicalHelpModal');
+      if (modal) modal.style.display = 'none';
     };
 
     // Form Submissions
@@ -2215,6 +3050,7 @@
     // Run pan-India setup & dynamic smooth scrolling on load
     window.addEventListener('DOMContentLoaded', () => {
       initPanIndiaSelectors();
+      updateNotificationBadge();
 
       // Dynamic navbar offset smooth scrolling for all top nav links
       document.querySelectorAll('a[href^="#"]').forEach(link => {
