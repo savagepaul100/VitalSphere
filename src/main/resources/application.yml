@@ -1,0 +1,34 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: vitalsphere
+  main:
+    allow-bean-definition-overriding: true
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+vaadin:
+  launch-browser: false
+  whitelisted-packages:
+    - com.vitalsphere
+
+vitalsphere:
+  platform:
+    name: "VitalSphere"
+    tagline: "Connecting Lives. Empowering Hope."
+    environment: "DEMONSTRATION"
+    demo-mode: true
+  firebase:
+    enabled: true
+    # If a service account json file path is supplied via environment variable, it connects to live Firestore
+    credentials-path: ${FIREBASE_CREDENTIALS_PATH:}
+    project-id: ${FIREBASE_PROJECT_ID:vitalsphere-demo-db}
+    storage-bucket: ${FIREBASE_STORAGE_BUCKET:vitalsphere-demo.appspot.com}
+  cooldown:
+    whole-blood-male-days: 90
+    whole-blood-female-days: 120
+    platelets-days: 14
+    plasma-days: 28

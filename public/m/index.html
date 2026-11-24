@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>VitalSphere Mobile — Blood Donation & Logistics</title>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --navy-950: #0a1120;
+      --navy-900: #0f172a;
+      --navy-800: #1e293b;
+      --slate-600: #475569;
+      --slate-500: #64748b;
+      --slate-400: #94a3b8;
+      --slate-200: #e2e8f0;
+      --slate-100: #f1f5f9;
+      --slate-50: #f8fafc;
+      --white: #ffffff;
+      
+      --red-600: #dc2626;
+      --red-700: #b91c1c;
+      --red-50: #fef2f2;
+      
+      --emerald-600: #059669;
+      --emerald-50: #ecfdf5;
+      --amber-600: #d97706;
+      --amber-50: #fffbeb;
+      --sky-600: #0284c7;
+
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'IBM Plex Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: #f1f5f9;
+      color: var(--navy-900);
+      font-family: var(--font-sans);
+      line-height: 1.45;
+      padding-bottom: 84px; /* Space for bottom tab bar */
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top App Bar */
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--navy-950);
+      color: white;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--red-600);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--red-600);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: white;
+      line-height: 1.1;
+    }
+
+    .brand-sub {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--slate-400);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-header {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: white;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .btn-header.primary {
+      background: var(--red-600);
+      border-color: var(--red-700);
+    }
+
+    /* Authority Bar if active */
+    .authority-pill-bar {
+      background: #064e3b;
+      color: #6ee7b7;
+      padding: 8px 16px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      display: none;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Hero Banner */
+    .mobile-hero {
+      background: linear-gradient(180deg, var(--navy-900) 0%, var(--navy-950) 100%);
+      color: white;
+      padding: 20px 16px;
+      text-align: center;
+    }
+
+    .mobile-hero h1 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      line-height: 1.25;
+    }
+
+    .mobile-hero p {
+      font-size: 0.82rem;
+      color: var(--slate-300);
+      margin-bottom: 14px;
+    }
+
+    .stats-scroller {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 4px 0 10px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .stats-scroller::-webkit-scrollbar { display: none; }
+
+    .stat-chip {
+      flex: 1;
+      min-width: 95px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 8px 6px;
+      text-align: center;
+    }
+
+    .stat-chip-num {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: white;
+      font-family: var(--font-mono);
+    }
+
+    .stat-chip-lbl {
+      font-size: 0.65rem;
+      color: var(--slate-300);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    /* Container */
+    .mobile-content {
+      padding: 16px;
+    }
+
+    /* Section Cards */
+    .section-card {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid var(--slate-200);
+      padding: 18px 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+      scroll-margin-top: 64px;
+    }
+
+    .section-title-wrap {
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--slate-100);
+      padding-bottom: 10px;
+    }
+
+    .sec-tag {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: var(--red-600);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .sec-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--navy-900);
+      line-height: 1.25;
+    }
+
+    .sec-desc {
+      font-size: 0.78rem;
+      color: var(--slate-500);
+      margin-top: 4px;
+    }
+
+    /* Stock Grid */
+    .stock-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stock-card {
+      background: var(--slate-50);
+      border: 1.5px solid var(--slate-200);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .stock-card:active {
+      transform: scale(0.97);
+      border-color: var(--red-600);
+      background: var(--red-50);
+    }
+
+    .stock-badge {
+      display: inline-block;
+      background: var(--red-600);
+      color: white;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 1rem;
+      padding: 2px 10px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+    }
+
+    .stock-units {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--navy-900);
+    }
+
+    .stock-center {
+      font-size: 0.68rem;
+      color: var(--slate-500);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Form Fields — 100% Mobile Optimized Vertical Stack */
+    .m-form-group {
+      margin-bottom: 14px;
+    }
+
+    .m-form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--navy-900);
+      margin-bottom: 5px;
+    }
+
+    .m-input, .m-select {
+      width: 100%;
+      height: 48px;
+      padding: 0 14px;
+      font-size: 0.9rem;
+      font-family: var(--font-sans);
+      color: var(--navy-900);
+      background: #ffffff;
+      border: 1.5px solid var(--slate-200);
+      border-radius: 8px;
+      box-sizing: border-box;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .m-select {
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px;
+      padding-right: 36px;
+    }
+
+    .m-input:focus, .m-select:focus {
+      outline: none;
+      border-color: var(--red-600);
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+    }
+
+    .m-file-tile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--slate-50);
+      border: 1.5px dashed var(--slate-300);
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+    }
+
+    .m-file-tile input[type="file"] {
+      display: none;
+    }
+
+    .m-file-btn {
+      background: var(--navy-900);
+      color: white;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .m-file-txt {
+      font-size: 0.78rem;
+      color: var(--slate-600);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .m-btn-submit {
+      width: 100%;
+      height: 50px;
+      background: var(--navy-900);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+      box-shadow: 0 3px 10px rgba(15, 23, 42, 0.15);
+    }
+
+    .m-btn-submit.emergency {
+      background: var(--red-600);
+      box-shadow: 0 3px 10px rgba(220, 38, 38, 0.25);
+    }
+
+    .m-btn-submit:active {
+      transform: scale(0.98);
+    }
+
+    .vol-helper-pill {
+      display: inline-block;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 6px;
+      margin-top: 4px;
+      font-family: var(--font-mono);
+    }
+
+    /* Directory Tabs & Cards */
+    .dir-switch {
+      display: flex;
+      background: var(--slate-200);
+      padding: 3px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .dir-switch-btn {
+      flex: 1;
+      padding: 8px 4px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      border: none;
+      background: transparent;
+      color: var(--slate-600);
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .dir-switch-btn.active {
+      background: white;
+      color: var(--navy-900);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    }
+
+    .donor-card-item {
+      background: white;
+      border: 1px solid var(--slate-200);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.03);
+    }
+
+    .d-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .d-name {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--navy-900);
+    }
+
+    .d-meta {
+      font-size: 0.72rem;
+      color: var(--slate-500);
+      font-family: var(--font-mono);
+      margin-top: 1px;
+    }
+
+    .d-bg-badge {
+      background: var(--red-600);
+      color: white;
+      font-weight: 800;
+      font-size: 0.9rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+    }
+
+    .d-mid-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .d-loc-pill {
+      background: var(--slate-100);
+      color: var(--slate-600);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .d-fit-pill {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+    }
+
+    .d-fit-pill.fit {
+      background: var(--emerald-50);
+      color: var(--emerald-600);
+      border: 1px solid rgba(5, 150, 105, 0.2);
+    }
+
+    .d-fit-pill.borderline {
+      background: var(--amber-50);
+      color: var(--amber-600);
+      border: 1px solid rgba(217, 119, 6, 0.2);
+    }
+
+    .btn-call {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      height: 40px;
+      background: var(--emerald-600);
+      color: white;
+      text-decoration: none;
+      font-size: 0.84rem;
+      font-weight: 700;
+      border-radius: 6px;
+    }
+
+    .btn-call:active {
+      background: #047857;
+    }
+
+    /* Fixed Bottom Tab Bar */
+    .bottom-tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: var(--navy-950);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 1000;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--slate-400);
+      text-decoration: none;
+      font-size: 0.65rem;
+      font-weight: 700;
+      gap: 3px;
+      flex: 1;
+      height: 100%;
+    }
+
+    .tab-item.active {
+      color: var(--red-600);
+    }
+
+    .tab-icon {
+      font-size: 1.2rem;
+    }
+
+    /* Modals / Sheets */
+    .sheet-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(10, 17, 32, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 2000;
+      display: none;
+      align-items: flex-end;
+    }
+
+    .sheet-card {
+      background: #111827;
+      color: white;
+      width: 100%;
+      max-height: 85vh;
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      padding: 20px 16px 36px;
+      overflow-y: auto;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+    }
+
+    .sheet-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 10px;
+    }
+
+    .sheet-close {
+      background: none;
+      border: none;
+      color: var(--slate-400);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    /* CampFlow Keychain inside sheet */
+    .keychain-item-mobile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+
+    .keychain-item-mobile:active {
+      background: #374151;
+      border-color: #38bdf8;
+    }
+
+    .k-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.85rem;
+      color: white;
+    }
+
+    .k-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .k-name {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: white;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .k-mail {
+      font-size: 0.68rem;
+      color: var(--slate-400);
+    }
+
+    .k-role-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+    }
+
+    /* Explainer modal */
+    .explainer-box {
+      background: white;
+      color: var(--navy-900);
+      width: 90%;
+      max-width: 440px;
+      margin: auto;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Mobile App Bar -->
+  <header class="app-header">
+    <div class="brand-group">
+      <div class="brand-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+      </div>
+      <div>
+        <div class="brand-title">VitalSphere</div>
+        <div class="brand-sub">Mobile Health Network</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="/?view=desktop" class="btn-header" title="Switch to Full Desktop Version">🖥️ Desktop</a>
+      <button class="btn-header primary" onclick="openMobileLogin()">🔑 Sign In</button>
+    </div>
+  </header>
+
+  <!-- Authority Banner (Active Session) -->
+  <div class="authority-pill-bar" id="mAuthorityBar">
+    <span id="mAuthorityText">Signed in: Chief Medical Officer</span>
+    <button onclick="openMobileReviewModal()" style="background:#059669; border:none; color:white; padding:4px 8px; border-radius:4px; font-size:0.7rem; font-weight:800;">
+      🩺 Review Desk (<span id="mPendingCount">5</span>)
+    </button>
+  </div>
+
+  <!-- Mobile Hero -->
+  <section class="mobile-hero" id="home">
+    <h1>National Blood Logistics Network</h1>
+    <p>Pan-India voluntary donor registry, real-time hospital reserves, and emergency transfusion coordination.</p>
+    
+    <div class="stats-scroller">
+      <div class="stat-chip">
+        <div class="stat-chip-num">256</div>
+        <div class="stat-chip-lbl">Verified Donors</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-num">32</div>
+        <div class="stat-chip-lbl">Active Requests</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-num">100+</div>
+        <div class="stat-chip-lbl">Centers</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-num">100%</div>
+        <div class="stat-chip-lbl">Clinical Fit</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content Areas -->
+  <main class="mobile-content">
+
+    <!-- 1. LIVE BLOOD STOCK -->
+    <section class="section-card" id="inventory">
+      <div class="section-title-wrap">
+        <span class="sec-tag">Real-Time Reserves</span>
+        <h2 class="sec-title">Live Blood Stock Inventory</h2>
+        <p class="sec-desc">Tap any blood group to filter verified donors and call directly.</p>
+      </div>
+
+      <div class="stock-grid">
+        <div class="stock-card" onclick="filterDirectoryByGroup('O-')">
+          <span class="stock-badge">O-</span>
+          <div class="stock-units">108 Units</div>
+          <div class="stock-center">Universal Donor</div>
+        </div>
+        <div class="stock-card" onclick="filterDirectoryByGroup('O+')">
+          <span class="stock-badge">O+</span>
+          <div class="stock-units">215 Units</div>
+          <div class="stock-center">High Availability</div>
+        </div>
+        <div class="stock-card" onclick="filterDirectoryByGroup('A-')">
+          <span class="stock-badge">A-</span>
+          <div class="stock-units">84 Units</div>
+          <div class="stock-center">Rh-Negative Stock</div>
+        </div>
+        <div class="stock-card" onclick="filterDirectoryByGroup('A+')">
+          <span class="stock-badge">A+</span>
+          <div class="stock-units">176 Units</div>
+          <div class="stock-center">Active Reserves</div>
+        </div>
+        <div class="stock-card" onclick="filterDirectoryByGroup('B-')">
+          <span class="stock-badge">B-</span>
+          <div class="stock-units">92 Units</div>
+          <div class="stock-center">Emergency Reserve</div>
+        </div>
+        <div class="stock-card" onclick="filterDirectoryByGroup('B+')">
+          <span class="stock-badge">B+</span>
+          <div class="stock-units">230 Units</div>
+          <div class="stock-center">High Availability</div>
+        </div>
+        <div class="stock-card" onclick="filterDirectoryByGroup('AB-')">
+          <span class="stock-badge">AB-</span>
+          <div class="stock-units">48 Units</div>
+          <div class="stock-center">Priority Group</div>
+        </div>
+        <div class="stock-card" onclick="filterDirectoryByGroup('AB+')">
+          <span class="stock-badge">AB+</span>
+          <div class="stock-units">140 Units</div>
+          <div class="stock-center">Universal Recipient</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. DONOR REGISTRATION FORM (Optimized Vertical Stack) -->
+    <section class="section-card" id="register">
+      <div class="section-title-wrap">
+        <span class="sec-tag">Save Lives</span>
+        <h2 class="sec-title">Voluntary Donor Registration</h2>
+        <p class="sec-desc">Submit your details and verification certificates. Registration enters the Medical Officer review queue.</p>
+      </div>
+
+      <form id="mDonorForm" onsubmit="handleMobileDonorSubmit(event)">
+        <div class="m-form-group">
+          <label>Full Name (As per Aadhaar)</label>
+          <input type="text" class="m-input" id="mDonorName" required />
+        </div>
+
+        <div class="m-form-group">
+          <label>Aadhaar Number (12 Digits)</label>
+          <input type="text" class="m-input" id="mDonorAadhaar" inputmode="numeric" pattern="[0-9]{12}" maxlength="12" required />
+        </div>
+
+        <div class="m-form-group">
+          <label>Blood Group</label>
+          <select class="m-select" id="mDonorGroup">
+            <option value="O-">O Negative (O-)</option>
+            <option value="O+">O Positive (O+)</option>
+            <option value="A-">A Negative (A-)</option>
+            <option value="A+">A Positive (A+)</option>
+            <option value="B-">B Negative (B-)</option>
+            <option value="B+">B Positive (B+)</option>
+            <option value="AB-">AB Negative (AB-)</option>
+            <option value="AB+">AB Positive (AB+)</option>
+          </select>
+        </div>
+
+        <div class="m-form-group">
+          <label>Mobile Contact Number</label>
+          <input type="tel" class="m-input" id="mDonorMobile" inputmode="tel" required />
+        </div>
+
+        <!-- Pan-India Dropdowns -->
+        <div class="m-form-group">
+          <label>State / Union Territory</label>
+          <select class="m-select" id="mDonorState" onchange="populateMobileCities('mDonorState', 'mDonorCity')">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+
+        <div class="m-form-group">
+          <label>City / District</label>
+          <select class="m-select" id="mDonorCity">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+
+        <div class="m-form-group">
+          <label>Medical Fitness Certificate</label>
+          <label class="m-file-tile">
+            <span class="m-file-btn">Choose File</span>
+            <span class="m-file-txt" id="mMedCertTxt">Upload Doctor Signed Fitness Report</span>
+            <input type="file" id="mDonorMedCert" accept=".pdf,.png,.jpg,.jpeg" onchange="updateMFileTxt(this, 'mMedCertTxt')" required />
+          </label>
+        </div>
+
+        <div class="m-form-group">
+          <label>Blood Group Proof Certificate</label>
+          <label class="m-file-tile">
+            <span class="m-file-btn">Choose File</span>
+            <span class="m-file-txt" id="mBloodProofTxt">Upload Lab Report or Donor ID</span>
+            <input type="file" id="mDonorBloodProof" accept=".pdf,.png,.jpg,.jpeg" onchange="updateMFileTxt(this, 'mBloodProofTxt')" required />
+          </label>
+        </div>
+
+        <div style="background:var(--amber-50); border:1px solid rgba(217,119,6,0.2); color:var(--amber-600); padding:10px 12px; border-radius:8px; font-size:0.75rem; font-weight:600; margin-bottom:14px;">
+          Notice: Registration will enter the pending verification queue for manual Medical Officer review.
+        </div>
+
+        <button type="submit" class="m-btn-submit">Submit for Medical Officer Review</button>
+        <div id="mDonorFeedback" style="display:none; margin-top:12px; font-size:0.8rem; font-weight:700;"></div>
+      </form>
+    </section>
+
+    <!-- 3. EMERGENCY TRANSFUSION REQUEST (Optimized Vertical Stack) -->
+    <section class="section-card" id="request">
+      <div class="section-title-wrap">
+        <span class="sec-tag" style="color:var(--red-600);">Emergency Transfusion</span>
+        <h2 class="sec-title">Ask for Blood — Patient Requirement</h2>
+        <p class="sec-desc">Submit urgent blood requirements for hospital inpatients and trauma care.</p>
+      </div>
+
+      <form id="mReqForm" onsubmit="handleMobileReqSubmit(event)">
+        <div class="m-form-group">
+          <label>Patient Full Name (As per Aadhaar)</label>
+          <input type="text" class="m-input" id="mReqPatient" required />
+        </div>
+
+        <div class="m-form-group">
+          <label>Patient Aadhaar Number (12 Digits)</label>
+          <input type="text" class="m-input" id="mReqAadhaar" inputmode="numeric" pattern="[0-9]{12}" maxlength="12" required />
+        </div>
+
+        <div class="m-form-group">
+          <label>Required Blood Group</label>
+          <select class="m-select" id="mReqGroup">
+            <option value="O-">O Negative (O-)</option>
+            <option value="O+">O Positive (O+)</option>
+            <option value="A-">A Negative (A-)</option>
+            <option value="A+">A Positive (A+)</option>
+            <option value="B-">B Negative (B-)</option>
+            <option value="B+">B Positive (B+)</option>
+            <option value="AB-">AB Negative (AB-)</option>
+            <option value="AB+">AB Positive (AB+)</option>
+          </select>
+        </div>
+
+        <div class="m-form-group">
+          <label>Clinical Urgency</label>
+          <select class="m-select" id="mReqUrgency">
+            <option value="CRITICAL">Critical (Immediate Surgery / ICU Care)</option>
+            <option value="URGENT">Urgent (Transfusion required within 6 hours)</option>
+            <option value="ROUTINE">Routine (Scheduled Replacement / Thalassemia)</option>
+          </select>
+        </div>
+
+        <div class="m-form-group">
+          <label>Units Needed</label>
+          <input type="number" class="m-input" id="mReqUnits" value="2" min="1" max="10" oninput="updateMUnitVolume(this.value)" required />
+          <div class="vol-helper-pill" id="mUnitVolTxt">Volume: 2 Units = 700 ml (Standard: 350 ml/unit)</div>
+        </div>
+
+        <div class="m-form-group">
+          <label>State / Union Territory</label>
+          <select class="m-select" id="mReqState" onchange="populateMobileCities('mReqState', 'mReqCity')">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+
+        <div class="m-form-group">
+          <label>City / District</label>
+          <select class="m-select" id="mReqCity">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+
+        <div class="m-form-group">
+          <label>Hospital Name & Area</label>
+          <input type="text" class="m-input" id="mReqHospital" required />
+        </div>
+
+        <div class="m-form-group">
+          <label>Attendant Contact Mobile</label>
+          <input type="tel" class="m-input" id="mReqMobile" inputmode="tel" required />
+        </div>
+
+        <button type="submit" class="m-btn-submit emergency">Submit Transfusion Requirement</button>
+        <div id="mReqFeedback" style="display:none; margin-top:12px; font-size:0.8rem; font-weight:700;"></div>
+      </form>
+    </section>
+
+    <!-- 4. DIRECTORY (256 Donors & 32 Recipients) -->
+    <section class="section-card" id="directory">
+      <div class="section-title-wrap">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <span class="sec-tag">Direct Tele-Coordination</span>
+            <h2 class="sec-title" id="mDirHeading">Verified Donors (256)</h2>
+          </div>
+          <button onclick="openExplainerModal()" style="border:1px solid #cbd5e1; background:var(--red-50); color:var(--red-600); width:28px; height:28px; border-radius:50%; font-weight:800; font-size:0.9rem;" title="What is FIT (Hb / Rest)?">?</button>
+        </div>
+      </div>
+
+      <div class="dir-switch">
+        <button class="dir-switch-btn active" id="mTabDonors" onclick="switchMobileDirectory('donors')">Donors (256)</button>
+        <button class="dir-switch-btn" id="mTabRecipients" onclick="switchMobileDirectory('recipients')">Recipients (32)</button>
+      </div>
+
+      <div class="m-form-group" style="margin-bottom:12px;">
+        <input type="text" class="m-input" id="mDirSearch" placeholder="Filter by name, state, city, or group..." oninput="filterMobileDirectory()" />
+      </div>
+
+      <div id="mDirList">
+        <!-- Rendered via JavaScript -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Mobile Tab Bar -->
+  <nav class="bottom-tab-bar">
+    <a href="#home" class="tab-item active" onclick="setActiveTab(this)">
+      <span class="tab-icon">🏠</span>
+      <span>Home</span>
+    </a>
+    <a href="#inventory" class="tab-item" onclick="setActiveTab(this)">
+      <span class="tab-icon">🩸</span>
+      <span>Stock</span>
+    </a>
+    <a href="#register" class="tab-item" onclick="setActiveTab(this)">
+      <span class="tab-icon">✍️</span>
+      <span>Register</span>
+    </a>
+    <a href="#request" class="tab-item" onclick="setActiveTab(this)">
+      <span class="tab-icon">🚨</span>
+      <span>Emergency</span>
+    </a>
+    <a href="#directory" class="tab-item" onclick="setActiveTab(this)">
+      <span class="tab-icon">👥</span>
+      <span>Directory</span>
+    </a>
+  </nav>
+
+  <!-- CAMPFLOW STYLE SAVED PASSWORDS KEYCHAIN BOTTOM SHEET -->
+  <div class="sheet-overlay" id="mKeychainSheet">
+    <div class="sheet-card">
+      <div class="sheet-head">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:1.1rem;">🔑</span>
+          <div>
+            <div style="font-size:0.95rem; font-weight:800;">Saved Accounts Keychain</div>
+            <div style="font-size:0.68rem; color:#38bdf8;">Tap any account to instantly autofill & log in</div>
+          </div>
+        </div>
+        <button class="sheet-close" onclick="closeMobileLogin()">&times;</button>
+      </div>
+
+      <!-- Authority Staff -->
+      <div style="font-size:0.68rem; font-weight:800; color:var(--slate-400); text-transform:uppercase; margin:8px 0 6px;">Medical & Hospital Authorities (5)</div>
+
+      <div class="keychain-item-mobile" onclick="selectMobileAccount('doctor.sharma@vitalsphere.gov.in', 'Chief Medical Officer', 'MEDICAL_OFFICER')">
+        <div class="k-avatar" style="background:#059669;">D</div>
+        <div class="k-info">
+          <div class="k-name">Dr. Rajesh Sharma</div>
+          <div class="k-mail">doctor.sharma@vitalsphere.gov.in</div>
+        </div>
+        <div class="k-role-badge" style="color:#34d399; background:rgba(52,211,153,0.15);">DOCTOR</div>
+      </div>
+
+      <div class="keychain-item-mobile" onclick="selectMobileAccount('admin@vitalsphere.gov.in', 'Super Administrator', 'SUPER_ADMIN')">
+        <div class="k-avatar" style="background:#0284c7;">A</div>
+        <div class="k-info">
+          <div class="k-name">Super Administrator</div>
+          <div class="k-mail">admin@vitalsphere.gov.in</div>
+        </div>
+        <div class="k-role-badge">ADMIN</div>
+      </div>
+
+      <div class="keychain-item-mobile" onclick="selectMobileAccount('dho.vizag@vitalsphere.gov.in', 'District Health Officer', 'DISTRICT_AUTHORITY')">
+        <div class="k-avatar" style="background:#d97706;">O</div>
+        <div class="k-info">
+          <div class="k-name">District Health Officer</div>
+          <div class="k-mail">dho.vizag@vitalsphere.gov.in</div>
+        </div>
+        <div class="k-role-badge" style="color:#fbbf24; background:rgba(251,191,36,0.15);">OFFICER</div>
+      </div>
+
+      <div class="keychain-item-mobile" onclick="selectMobileAccount('bloodbank.vizag@vitalsphere.gov.in', 'Blood Bank Admin', 'BLOOD_BANK_ADMIN')">
+        <div class="k-avatar" style="background:#8b5cf6;">B</div>
+        <div class="k-info">
+          <div class="k-name">Blood Bank Administrator</div>
+          <div class="k-mail">bloodbank.vizag@vitalsphere.gov.in</div>
+        </div>
+        <div class="k-role-badge" style="color:#c084fc; background:rgba(192,132,252,0.15);">BLOOD BANK</div>
+      </div>
+
+      <div class="keychain-item-mobile" onclick="selectMobileAccount('organizer.ap@vitalsphere.gov.in', 'Camp Coordinator', 'CAMP_ORGANIZER')">
+        <div class="k-avatar" style="background:#dc2626;">C</div>
+        <div class="k-info">
+          <div class="k-name">Camp Coordinator (Red Cross)</div>
+          <div class="k-mail">organizer.ap@vitalsphere.gov.in</div>
+        </div>
+        <div class="k-role-badge" style="color:#f87171; background:rgba(248,113,113,0.15);">CAMP</div>
+      </div>
+
+      <!-- Citizens & Donors -->
+      <div style="font-size:0.68rem; font-weight:800; color:var(--slate-400); text-transform:uppercase; margin:14px 0 6px;">Citizen Donors & Patients (5)</div>
+
+      <div class="keychain-item-mobile" onclick="selectMobileAccount('donor1.rajesh@vitalsphere.demo', 'K. Rajesh Kumar (O-)', 'DONOR')">
+        <div class="k-avatar" style="background:#475569;">R</div>
+        <div class="k-info">
+          <div class="k-name">K. Rajesh Kumar (O-)</div>
+          <div class="k-mail">donor1.rajesh@vitalsphere.demo</div>
+        </div>
+        <div class="k-role-badge" style="color:#94a3b8; background:rgba(148,163,184,0.15);">DONOR</div>
+      </div>
+
+      <div class="keychain-item-mobile" onclick="selectMobileAccount('donor2.ananya@vitalsphere.demo', 'M. Ananya Rao (B+)', 'DONOR')">
+        <div class="k-avatar" style="background:#475569;">A</div>
+        <div class="k-info">
+          <div class="k-name">M. Ananya Rao (B+)</div>
+          <div class="k-mail">donor2.ananya@vitalsphere.demo</div>
+        </div>
+        <div class="k-role-badge" style="color:#94a3b8; background:rgba(148,163,184,0.15);">DONOR</div>
+      </div>
+
+      <div class="keychain-item-mobile" onclick="selectMobileAccount('donor3.suresh@vitalsphere.demo', 'P. Suresh Varma (A+)', 'DONOR')">
+        <div class="k-avatar" style="background:#475569;">S</div>
+        <div class="k-info">
+          <div class="k-name">P. Suresh Varma (A+)</div>
+          <div class="k-mail">donor3.suresh@vitalsphere.demo</div>
+        </div>
+        <div class="k-role-badge" style="color:#94a3b8; background:rgba(148,163,184,0.15);">DONOR</div>
+      </div>
+
+      <div class="keychain-item-mobile" onclick="selectMobileAccount('donor4.sneha@vitalsphere.demo', 'B. Sneha Naidu (AB+)', 'DONOR')">
+        <div class="k-avatar" style="background:#475569;">S</div>
+        <div class="k-info">
+          <div class="k-name">B. Sneha Naidu (AB+)</div>
+          <div class="k-mail">donor4.sneha@vitalsphere.demo</div>
+        </div>
+        <div class="k-role-badge" style="color:#94a3b8; background:rgba(148,163,184,0.15);">DONOR</div>
+      </div>
+
+      <div class="keychain-item-mobile" onclick="selectMobileAccount('patient.tarun@vitalsphere.demo', 'D. Tarun (Attendant)', 'RECIPIENT')">
+        <div class="k-avatar" style="background:#475569;">T</div>
+        <div class="k-info">
+          <div class="k-name">D. Tarun (Attendant)</div>
+          <div class="k-mail">patient.tarun@vitalsphere.demo</div>
+        </div>
+        <div class="k-role-badge" style="color:#94a3b8; background:rgba(148,163,184,0.15);">RECIPIENT</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Medical Review Sheet for Authorities -->
+  <div class="sheet-overlay" id="mReviewSheet">
+    <div class="sheet-card">
+      <div class="sheet-head">
+        <div>
+          <div style="font-size:0.95rem; font-weight:800;">Medical Officer Verification Desk</div>
+          <div style="font-size:0.68rem; color:#34d399;">Review uploaded certificates and approve donors</div>
+        </div>
+        <button class="sheet-close" onclick="closeMobileReviewModal()">&times;</button>
+      </div>
+
+      <div id="mPendingList">
+        <!-- Dynamically rendered pending queue -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Clinical Status Explainer Modal -->
+  <div class="sheet-overlay" id="mExplainerModal" style="align-items:center;">
+    <div class="explainer-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="font-size:1.05rem; font-weight:800; color:var(--navy-900);">Clinical Status Guide</h3>
+        <button onclick="closeExplainerModal()" style="border:none; background:none; font-size:1.3rem; cursor:pointer;">&times;</button>
+      </div>
+      <div style="font-size:0.82rem; color:var(--slate-600); line-height:1.5;">
+        <p style="margin-bottom:8px;"><strong>What does FIT (Hb: 13.1 g/dL, Rest: 133d) mean?</strong></p>
+        <div style="background:var(--slate-50); border:1px solid var(--slate-200); padding:10px; border-radius:6px; margin-bottom:10px;">
+          <p>• <strong>FIT</strong>: The donor has successfully passed pre-donation medical screening, vitals check, and serology verification.</p>
+          <p style="margin-top:4px;">• <strong>Hb: 13.1 g/dL (Hemoglobin)</strong>: NBTC / NACO mandatory minimum standard is <strong>12.5 g/dL</strong>. 13.1 g/dL confirms healthy oxygen-carrying capacity.</p>
+          <p style="margin-top:4px;">• <strong>Rest: 133d (Cooldown Interval)</strong>: Mandatory recovery interval between whole blood donations is <strong>90 days</strong> for male donors and <strong>120 days</strong> for female donors. 133 days confirms full clinical recuperation.</p>
+        </div>
+        <p style="font-size:0.75rem; color:var(--slate-500);">All donors undergo mandatory physical examination by a registered Medical Officer prior to phlebotomy.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shared Directory Data Script -->
+  <script type="module">
+    import { INDIA_STATES_DATA, fullDonorsList, fullRecipientsList } from '/directory-data.js';
+
+    let currentTab = 'donors';
+    let currentFilterGroup = null;
+
+    // Pending review queue for authorities
+    window.pendingDonors = [
+      { id: "P-101", name: "K. Rajesh Kumar", aadhaar: "XXXX-XXXX-4512", group: "O-", cert: "fitness_report_dr_reddy.pdf", proof: "lab_report_blood_card.pdf", st: "Andhra Pradesh", city: "Visakhapatnam" },
+      { id: "P-102", name: "M. Ananya Rao", aadhaar: "XXXX-XXXX-8921", group: "B+", cert: "apollo_health_clearance.pdf", proof: "donor_identity_card.pdf", st: "Karnataka", city: "Bengaluru" },
+      { id: "P-103", name: "P. Suresh Varma", aadhaar: "XXXX-XXXX-3341", group: "A+", cert: "fitness_nov_check.pdf", proof: "pathology_group_report.pdf", st: "Maharashtra", city: "Mumbai" },
+      { id: "P-104", name: "B. Sneha Naidu", aadhaar: "XXXX-XXXX-6712", group: "AB+", cert: "ggh_medical_officer_cert.pdf", proof: "red_cross_donor_badge.pdf", st: "Telangana", city: "Hyderabad" },
+      { id: "P-105", name: "D. Tarun Chowdary", aadhaar: "XXXX-XXXX-9901", group: "O+", cert: "clinical_fitness_cert.pdf", proof: "diagnostic_card.pdf", st: "Delhi NCR", city: "New Delhi" }
+    ];
+
+    // Populate Pan-India State and City Selectors
+    window.populateMobileCities = function(stateSelectId, citySelectId) {
+      const stateSel = document.getElementById(stateSelectId);
+      const citySel = document.getElementById(citySelectId);
+      const chosenState = stateSel.value;
+      const cities = INDIA_STATES_DATA[chosenState] || [];
+      
+      citySel.innerHTML = '';
+      cities.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        citySel.appendChild(opt);
+      });
+    };
+
+    function initMobilePanIndia() {
+      const states = Object.keys(INDIA_STATES_DATA);
+      ['mDonorState', 'mReqState'].forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        sel.innerHTML = '';
+        states.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s;
+          opt.textContent = s;
+          sel.appendChild(opt);
+        });
+      });
+      populateMobileCities('mDonorState', 'mDonorCity');
+      populateMobileCities('mReqState', 'mReqCity');
+    }
+
+    // Render Directory
+    window.renderMobileDirectory = function() {
+      const listEl = document.getElementById('mDirList');
+      const search = (document.getElementById('mDirSearch').value || '').toLowerCase().trim();
+
+      if (currentTab === 'donors') {
+        let donors = fullDonorsList;
+        if (currentFilterGroup) {
+          donors = donors.filter(d => d.bloodGroup === currentFilterGroup);
+        }
+        if (search) {
+          donors = donors.filter(d => 
+            d.name.toLowerCase().includes(search) || 
+            d.bloodGroup.toLowerCase().includes(search) ||
+            d.city.toLowerCase().includes(search) ||
+            d.state.toLowerCase().includes(search)
+          );
+        }
+
+        document.getElementById('mDirHeading').innerText = `Verified Donors (${donors.length})`;
+
+        listEl.innerHTML = donors.map(d => `
+          <div class="donor-card-item">
+            <div class="d-top-row">
+              <div>
+                <div class="d-name">${d.name}</div>
+                <div class="d-meta">Aadhaar: ${d.aadhaar} • ${d.id}</div>
+              </div>
+              <span class="d-bg-badge">${d.bloodGroup}</span>
+            </div>
+            <div class="d-mid-row">
+              <span class="d-loc-pill">📍 ${d.city}, ${d.state}</span>
+              <span class="d-fit-pill ${d.fitClass}" onclick="openExplainerModal()">${d.healthStatus} ℹ️</span>
+            </div>
+            <a href="tel:${d.mobile}" class="btn-call">
+              <span>📞</span> Call Donor (${d.mobile})
+            </a>
+          </div>
+        `).join('');
+
+      } else {
+        let recs = fullRecipientsList;
+        if (search) {
+          recs = recs.filter(r => 
+            r.patientName.toLowerCase().includes(search) || 
+            r.bloodGroup.toLowerCase().includes(search) ||
+            r.city.toLowerCase().includes(search) ||
+            r.hospital.toLowerCase().includes(search)
+          );
+        }
+
+        document.getElementById('mDirHeading').innerText = `Recipients Who Want Blood (${recs.length})`;
+
+        listEl.innerHTML = recs.map(r => `
+          <div class="donor-card-item" style="border-left:4px solid ${r.urgency === 'CRITICAL' ? 'var(--red-600)' : 'var(--amber-600)'};">
+            <div class="d-top-row">
+              <div>
+                <div class="d-name">${r.patientName}</div>
+                <div class="d-meta">Aadhaar: ${r.aadhaar} • ${r.id}</div>
+              </div>
+              <span class="d-bg-badge">${r.bloodGroup}</span>
+            </div>
+            <div class="d-mid-row">
+              <span class="d-loc-pill">🏥 ${r.hospital}</span>
+              <span class="d-loc-pill">🩸 ${r.units}</span>
+              <span class="d-fit-pill ${r.urgency === 'CRITICAL' ? 'borderline' : 'fit'}">${r.urgency}</span>
+            </div>
+            <a href="tel:${r.contact}" class="btn-call" style="background:var(--navy-900);">
+              <span>📞</span> Contact Attendant (${r.contact})
+            </a>
+          </div>
+        `).join('');
+      }
+    };
+
+    window.switchMobileDirectory = function(tab) {
+      currentTab = tab;
+      currentFilterGroup = null;
+      document.getElementById('mTabDonors').classList.toggle('active', tab === 'donors');
+      document.getElementById('mTabRecipients').classList.toggle('active', tab === 'recipients');
+      renderMobileDirectory();
+    };
+
+    window.filterDirectoryByGroup = function(grp) {
+      currentTab = 'donors';
+      currentFilterGroup = grp;
+      document.getElementById('mTabDonors').classList.add('active');
+      document.getElementById('mTabRecipients').classList.remove('active');
+      renderMobileDirectory();
+      document.getElementById('directory').scrollIntoView({ behavior: 'smooth' });
+    };
+
+    window.filterMobileDirectory = function() {
+      renderMobileDirectory();
+    };
+
+    window.updateMUnitVolume = function(val) {
+      const units = parseInt(val) || 1;
+      const ml = units * 350;
+      document.getElementById('mUnitVolTxt').innerText = `Volume: ${units} Unit${units > 1 ? 's' : ''} = ${ml} ml (Standard: 350 ml/unit)`;
+    };
+
+    window.updateMFileTxt = function(input, textId) {
+      if (input.files && input.files[0]) {
+        document.getElementById(textId).innerText = `Selected: ${input.files[0].name}`;
+      }
+    };
+
+    // Form handlers
+    window.handleMobileDonorSubmit = function(e) {
+      e.preventDefault();
+      const name = document.getElementById('mDonorName').value;
+      const aadhaar = document.getElementById('mDonorAadhaar').value;
+      const grp = document.getElementById('mDonorGroup').value;
+      const st = document.getElementById('mDonorState').value;
+      const city = document.getElementById('mDonorCity').value;
+      const fb = document.getElementById('mDonorFeedback');
+
+      fb.style.display = 'block';
+      fb.style.color = 'var(--emerald-600)';
+      fb.innerHTML = `✓ Registered <strong>${name}</strong> (${grp}) in ${city}, ${st}!<br/>Aadhaar: ${aadhaar.slice(0,4)}-XXXX-${aadhaar.slice(8)}. Record queued for Medical Officer clearance.`;
+
+      // Add to pending review queue
+      window.pendingDonors.unshift({
+        id: `P-${100 + window.pendingDonors.length + 1}`,
+        name: name,
+        aadhaar: `XXXX-XXXX-${aadhaar.slice(8)}`,
+        group: grp,
+        cert: "uploaded_fitness_cert.pdf",
+        proof: "uploaded_blood_card.pdf",
+        st: st,
+        city: city
+      });
+      updatePendingBadge();
+
+      document.getElementById('mDonorForm').reset();
+      document.getElementById('mMedCertTxt').innerText = 'Upload Doctor Signed Fitness Report';
+      document.getElementById('mBloodProofTxt').innerText = 'Upload Lab Report or Donor ID';
+    };
+
+    window.handleMobileReqSubmit = function(e) {
+      e.preventDefault();
+      const patient = document.getElementById('mReqPatient').value;
+      const grp = document.getElementById('mReqGroup').value;
+      const units = document.getElementById('mReqUnits').value;
+      const hosp = document.getElementById('mReqHospital').value;
+      const fb = document.getElementById('mReqFeedback');
+
+      fb.style.display = 'block';
+      fb.style.color = 'var(--emerald-600)';
+      fb.innerHTML = `✓ Emergency requirement logged for <strong>${patient}</strong> (${grp}, ${units} Units). Nearby centers alerted!`;
+      document.getElementById('mReqForm').reset();
+    };
+
+    // Keychain Bottom Sheet
+    window.openMobileLogin = function() {
+      document.getElementById('mKeychainSheet').style.display = 'flex';
+    };
+
+    window.closeMobileLogin = function() {
+      document.getElementById('mKeychainSheet').style.display = 'none';
+    };
+
+    window.selectMobileAccount = function(email, title, role) {
+      closeMobileLogin();
+      const bar = document.getElementById('mAuthorityBar');
+      const txt = document.getElementById('mAuthorityText');
+      
+      bar.style.display = 'flex';
+      txt.innerText = `Signed in: ${title}`;
+      
+      if (role === 'MEDICAL_OFFICER' || role === 'SUPER_ADMIN' || role === 'DISTRICT_AUTHORITY') {
+        alert(`✓ Authenticated as ${title}!\nAuthority controls and Medical Officer Review Desk unlocked.`);
+      } else {
+        alert(`✓ Signed in as ${title}!\nCitizen portal session active.`);
+      }
+    };
+
+    // Medical Review Modal
+    window.openMobileReviewModal = function() {
+      renderPendingList();
+      document.getElementById('mReviewSheet').style.display = 'flex';
+    };
+
+    window.closeMobileReviewModal = function() {
+      document.getElementById('mReviewSheet').style.display = 'none';
+    };
+
+    function updatePendingBadge() {
+      const countEl = document.getElementById('mPendingCount');
+      if (countEl) countEl.innerText = window.pendingDonors.length;
+    }
+
+    window.renderPendingList = function() {
+      const listEl = document.getElementById('mPendingList');
+      if (window.pendingDonors.length === 0) {
+        listEl.innerHTML = `<div style="text-align:center; padding:20px; color:var(--slate-400);">No pending donor reviews. All caught up!</div>`;
+        return;
+      }
+
+      listEl.innerHTML = window.pendingDonors.map((p, idx) => `
+        <div style="background:#1f2937; border:1px solid #374151; border-radius:8px; padding:12px; margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <div style="font-size:0.9rem; font-weight:800; color:white;">${p.name}</div>
+            <span class="d-bg-badge">${p.group}</span>
+          </div>
+          <div style="font-size:0.7rem; color:var(--slate-400); font-family:var(--font-mono); margin-bottom:6px;">
+            Aadhaar: ${p.aadhaar} • 📍 ${p.city}, ${p.st}
+          </div>
+          <div style="font-size:0.72rem; color:#93c5fd; margin-bottom:10px;">
+            📄 ${p.cert}<br/>🩸 ${p.proof}
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button onclick="approveMobileDonor(${idx})" style="flex:1; height:36px; background:#059669; color:white; border:none; border-radius:6px; font-size:0.78rem; font-weight:800; cursor:pointer;">
+              ✓ Approve Donor
+            </button>
+            <button onclick="deferMobileDonor(${idx})" style="flex:1; height:36px; background:#dc2626; color:white; border:none; border-radius:6px; font-size:0.78rem; font-weight:800; cursor:pointer;">
+              ✕ Temporary Defer
+            </button>
+          </div>
+        </div>
+      `).join('');
+    };
+
+    window.approveMobileDonor = function(idx) {
+      const approved = window.pendingDonors.splice(idx, 1)[0];
+      // Add to full donors list
+      fullDonorsList.unshift({
+        id: `DNR-${257 + idx}`,
+        name: approved.name,
+        aadhaar: approved.aadhaar,
+        bloodGroup: approved.group,
+        state: approved.st,
+        city: approved.city,
+        district: `${approved.city}, ${approved.st}`,
+        healthStatus: "FIT (Hb: 13.5 g/dL, Rest: 95d)",
+        fitClass: "status-fit",
+        medicalProof: approved.cert,
+        groupProof: approved.proof,
+        mobile: "+91 9848" + Math.floor(100000 + Math.random() * 900000),
+        verification: "APPROVED_BY_MEDICAL_OFFICER",
+        donationState: "Ready to Donate (Eligible Now)"
+      });
+
+      updatePendingBadge();
+      renderPendingList();
+      renderMobileDirectory();
+      alert(`✓ ${approved.name} has been APPROVED!\nCredentials verified and added to live 256+ donor directory.`);
+    };
+
+    window.deferMobileDonor = function(idx) {
+      const deferred = window.pendingDonors.splice(idx, 1)[0];
+      updatePendingBadge();
+      renderPendingList();
+      alert(`Donor ${deferred.name} has been placed on 90-day clinical deferral.`);
+    };
+
+    // Explainer Modal
+    window.openExplainerModal = function() {
+      document.getElementById('mExplainerModal').style.display = 'flex';
+    };
+
+    window.closeExplainerModal = function() {
+      document.getElementById('mExplainerModal').style.display = 'none';
+    };
+
+    // Bottom tab active switcher
+    window.setActiveTab = function(el) {
+      document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+    };
+
+    // On Load
+    window.addEventListener('DOMContentLoaded', () => {
+      initMobilePanIndia();
+      renderMobileDirectory();
+      updatePendingBadge();
+    });
+  </script>
+</body>
+</html>
